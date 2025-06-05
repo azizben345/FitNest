@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-class DashboardView extends StatelessWidget {
+class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
+
+  @override
+  State<DashboardView> createState() => _DashboardViewState();
+}
+
+class _DashboardViewState extends State<DashboardView> {
   @override
   Widget build(BuildContext context) {
 
@@ -13,123 +19,151 @@ class DashboardView extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  height: 200,
-                  child: PieChart(
-                  PieChartData(
-                    sections: [
-                    PieChartSectionData(
-                      value: 50,
-                      title: '50%',
-                      color: Colors.blue,
-                      radius: 50,
-                      titleStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      ),
-                    ),
-                    PieChartSectionData(
-                      value: 50,
-                      title: '50%',
-                      color: Colors.orange,
-                      radius: 50,
-                      titleStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      ),
-                    ),
-                    ],
-                    centerSpaceRadius: 40,
-                    sectionsSpace: 2,
-                  ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Workout Streak Section
+            Card(
+              color: Colors.green[50],
+              margin: const EdgeInsets.only(bottom: 16),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                child: Row(
                   children: [
-                  Row(
-                    children: [
-                    Container(
-                      width: 16,
-                      height: 16,
-                      decoration: const BoxDecoration(
-                      color: Colors.blue,
-                      shape: BoxShape.circle,
-                      ),
+                    Icon(Icons.local_fire_department, color: Colors.orange[700], size: 36),
+                    const SizedBox(width: 16),
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                      'Workout Streak',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                      '🔥 7 days in a row!',
+                      style: TextStyle(fontSize: 18, color: Colors.deepOrange, fontWeight: FontWeight.w600),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 6),
-                    const Text('Calorie Intake'),
-                    ],
-                  ),
-                  const SizedBox(width: 20),
-                  Row(
-                    children: [
-                    Container(
-                      width: 16,
-                      height: 16,
-                      decoration: const BoxDecoration(
-                      color: Colors.orange,
-                      shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    const Text('Calories Burned'),
-                    ],
-                  ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Today\'s Workout Schedule',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            SizedBox(
+              height: 200,
+              child: PieChart(
+                PieChartData(
+                  sections: [
+                    PieChartSectionData(
+                      value: 50,
+                      title: '50%',
+                      color: Colors.blue,
+                      radius: 50,
+                      titleStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      ),
+                    ),
+                    PieChartSectionData(
+                      value: 50,
+                      title: '50%',
+                      color: Colors.orange,
+                      radius: 50,
+                      titleStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      ),
+                    ),
+                  ],
+                  centerSpaceRadius: 40,
+                  sectionsSpace: 2,
                 ),
-                const SizedBox(height: 8),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+              Row(
+                children: [
                 Container(
-                  height: 300,
-                  color: Colors.grey[200],
-                  child: ListView.builder(
-                    itemCount: mockWorkoutSchedule.length,
-                    itemBuilder: (context, index) {
-                      return Card(
-                        child: ListTile(
-                          leading: const Icon(Icons.run_circle),
-                          title: Text(mockWorkoutSchedule[index]),
-                          subtitle: Text('25 reps, 3 sets, 20 sec rest: ${index + 1}'),
-                          trailing: const Icon(Icons.more_horiz),
-                        ),
-                      );
-                    },
+                  width: 16,
+                  height: 16,
+                  decoration: const BoxDecoration(
+                  color: Colors.blue,
+                  shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Workout History',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  height: 100,
-                  color: Colors.grey[200],
-                  child: const Center(child: Text('Workout History')),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Nutrition Intake',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  height: 100,
-                  color: Colors.grey[200],
-                  child: const Center(child: Text('Today and Yesterday Nutrition Intake')),
+                const SizedBox(width: 6),
+                const Text('Calorie Intake'),
+                ],
+              ),
+              const SizedBox(width: 20),
+              Row(
+                children: [
+                  Container(
+                    width: 16,
+                    height: 16,
+                    decoration: const BoxDecoration(
+                    color: Colors.orange,
+                    shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  const Text('Calories Burned'),
+                  ],
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            const Text(
+          'Today\'s Workout Schedule',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Container(
+          height: 300,
+          color: Colors.grey[200],
+          child: ListView.builder(
+            itemCount: mockWorkoutSchedule.length,
+            itemBuilder: (context, index) {
+              return Card(
+            child: ListTile(
+              leading: const Icon(Icons.run_circle),
+              title: Text(mockWorkoutSchedule[index]),
+              subtitle: Text('25 reps, 3 sets, 20 sec rest: ${index + 1}'),
+              trailing: const Icon(Icons.more_horiz),
+            ),
+              );
+            },
+          ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+          'Workout History',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Container(
+          height: 100,
+          color: Colors.grey[200],
+          child: const Center(child: Text('Workout History')),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+          'Nutrition Intake',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Container(
+          height: 100,
+          color: Colors.grey[200],
+          child: const Center(child: Text('Today and Yesterday Nutrition Intake')),
+            ),
+          ],
+        ),
           ),
         ),
       ),

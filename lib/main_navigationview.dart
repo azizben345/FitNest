@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'ui/dashboard/view_dashboard.dart';
 import 'ui/dashboard/schedule_page.dart';
 import 'ui/profile/profile_page.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+Future<void> main() async{
+
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MaterialApp(
     home: MainNavigationView(),
     debugShowCheckedModeBanner: false,
