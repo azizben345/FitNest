@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "1046288975827",
+    "project_id": "fitnestapplication-c6306",
+    "storage_bucket": "fitnestapplication-c6306.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1046288975827:android:2e865828e3f9a188c11126",
+        "android_client_info": {
+          "package_name": "com.chillguys.fitnestapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLuj7fX3jbuinm-tFkiOx6vSOqQ140LA0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1046288975827:android:81607bee5ed94185c11126",
+        "android_client_info": {
+          "package_name": "com.example.fitnest_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLuj7fX3jbuinm-tFkiOx6vSOqQ140LA0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1046288975827:android:cce8f30431397613c11126",
+        "android_client_info": {
+          "package_name": "com.example.fitnest_application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLuj7fX3jbuinm-tFkiOx6vSOqQ140LA0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
