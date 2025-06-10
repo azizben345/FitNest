@@ -24,10 +24,32 @@ class DashboardViewModel {
       return [];
     }
   }
+  
+  Future<List<Map<String, dynamic>>> fetchNutritionIntake() async {
+    try {
+      CollectionReference nutritionCollection = FirebaseFirestore.instance.collection('nutritionIntake');
+      
+      QuerySnapshot snapshot = await nutritionCollection.get();
+      
+      List<Map<String, dynamic>> fetchedNutritionIntake = snapshot.docs.map((doc) {
+        return {
+          'id': doc.id,
+          'calories': doc['calories'],
+          'mealTime': formatTimestamp(doc['mealTime']),
+          'mealType': doc['mealType'],
+        };
+      }).toList();
+      
+      return fetchedNutritionIntake;
+    } catch (e) {
+      print('Error fetching nutrition intake: $e');
+      return [];
+    }
+  }
 
-  // Function to format timestamp
+  // to format timestamp
   String formatTimestamp(Timestamp timestamp) {
-    DateTime dateTime = timestamp.toDate(); // Convert Firestore Timestamp to DateTime
-    return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime); // Format as 'yyyy-MM-dd HH:mm:ss'
+    DateTime dateTime = timestamp.toDate(); // convert Firestore Timestamp to DateTime
+    return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime); // format as 'yyyy-MM-dd HH:mm:ss'
   }
 }

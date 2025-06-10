@@ -10,22 +10,26 @@ class DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<DashboardView> {
-  final DashboardViewModel viewModel = DashboardViewModel();  // Instantiate the ViewModel
+
+  final DashboardViewModel viewModel = DashboardViewModel();  
   List<Map<String, dynamic>> workoutHistory = [];
+  List<Map<String, dynamic>> nutritionIntake = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    fetchWorkoutHistory();  // Fetch data on initialization
+    fetchData(); // Fetch data on initialization
   }
 
   // Method to fetch workout history data using the ViewModel
-  Future<void> fetchWorkoutHistory() async {
+  Future<void> fetchData() async {
     List<Map<String, dynamic>> fetchedWorkoutHistory = await viewModel.fetchWorkoutHistory();
+    List<Map<String, dynamic>> fetchedNutritionIntake = await viewModel.fetchNutritionIntake();
     setState(() {
       workoutHistory = fetchedWorkoutHistory;
-      isLoading = false;  // Set loading to false once data is fetched
+      nutritionIntake = fetchedNutritionIntake;
+      isLoading = false;  // loading is complete
     });
   }
   
@@ -153,7 +157,7 @@ class _DashboardViewState extends State<DashboardView> {
                     child: ListTile(
                       leading: const Icon(Icons.run_circle),
                       title: Text(mockWorkoutSchedule[index]),
-                      subtitle: Text('25 reps, 3 sets, 20 sec rest: ${index + 1}'),
+                      subtitle: Text('Mock Data: ${index + 1}'),
                       trailing: const Icon(Icons.more_horiz),
                     ),
                   );
@@ -180,7 +184,7 @@ class _DashboardViewState extends State<DashboardView> {
                       child: ListTile(
                         leading: const Icon(Icons.run_circle),
                         title: Text(workout['activityType']),
-                        subtitle: Text('Duration: ${workout['duration']} minutes\nTimestamp: ${workout['timestamp']}'),
+                        subtitle: Text('Duration: ${workout['duration']} minutes \nTimestamp: ${workout['timestamp']}'),
                         trailing: const Icon(Icons.more_horiz),
                         ),
                     );
@@ -188,21 +192,43 @@ class _DashboardViewState extends State<DashboardView> {
                 ),
               ),
             const SizedBox(height: 16),
+
             const Text(
               'Nutrition Intake',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Container(
-              height: 100,
-              color: Colors.grey[200],
-              child: const Center(child: Text('Today and Yesterday Nutrition Intake')),
-            ),
+            isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Container(
+                height: 300,
+                color: Colors.grey[200],
+                child: ListView.builder(
+                  itemCount: nutritionIntake.length,
+                  itemBuilder: (context, index) {
+                    var nutrition = nutritionIntake[index];
+                    return Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.restaurant),
+                        title: Text(nutrition['mealType']),
+                        subtitle: Text('Calorie: ${nutrition['calories']} cal \nMeal Time: ${nutrition['mealTime']}'),
+                        trailing: const Icon(Icons.more_horiz),
+                        ),
+                    );
+                  },
+                ),
+              ),
+            // Container(
+            //   height: 100,
+            //   color: Colors.grey[200],
+            //   child: const Center(child: Text('Today and Yesterday Nutrition Intake')),
+            // ),
           ],
         ),
           ),
         ),
       ),
+
       // Dashboard filter button
       floatingActionButton: Builder(
         builder: (context) => FloatingActionButton(
