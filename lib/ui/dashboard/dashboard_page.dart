@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:fitnest_app/ui/authentication/user_viewmodel.dart';
 import 'dashboard_viewmodel.dart';
 
 class DashboardView extends StatefulWidget {
@@ -11,7 +12,10 @@ class DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<DashboardView> {
 
-  final DashboardViewModel viewModel = DashboardViewModel();  
+  final UserViewModel userViewModel = UserViewModel();
+  final DashboardViewModel dashboardViewModel = DashboardViewModel();  
+  
+  String currentUserIdDisplay = ''; // to store the current user ID for display
   List<Map<String, dynamic>> workoutHistory = [];
   List<Map<String, dynamic>> nutritionIntake = [];
   bool isLoading = true;
@@ -19,18 +23,29 @@ class _DashboardViewState extends State<DashboardView> {
   @override
   void initState() {
     super.initState();
-    fetchData(); // Fetch data on initialization
+    fetchData(); // fetch data on initialization
   }
 
-  // Method to fetch workout history data using the ViewModel
   Future<void> fetchData() async {
-    List<Map<String, dynamic>> fetchedWorkoutHistory = await viewModel.fetchWorkoutHistory();
-    List<Map<String, dynamic>> fetchedNutritionIntake = await viewModel.fetchNutritionIntake();
-    setState(() {
-      workoutHistory = fetchedWorkoutHistory;
-      nutritionIntake = fetchedNutritionIntake;
-      isLoading = false;  // loading is complete
-    });
+    String? currentUserId = await userViewModel.getUserUid(); 
+
+    if (currentUserId != null) {
+      List<Map<String, dynamic>> fetchedWorkoutHistory = await dashboardViewModel.fetchWorkoutHistory(currentUserId);
+      List<Map<String, dynamic>> fetchedNutritionIntake = await dashboardViewModel.fetchNutritionIntake(currentUserId);
+
+      setState(() {
+        currentUserIdDisplay = currentUserId; // store the current user ID
+        workoutHistory = fetchedWorkoutHistory;
+        nutritionIntake = fetchedNutritionIntake;
+        isLoading = false;  // data fetching complete
+      });
+    } else {
+      // handle the case where the user is not logged in
+      setState(() {
+        isLoading = false;
+      });
+      print('User not logged in.');
+    }
   }
   
   @override
@@ -56,15 +71,15 @@ class _DashboardViewState extends State<DashboardView> {
                   children: [
                     Icon(Icons.local_fire_department, color: Colors.orange[700], size: 36),
                     const SizedBox(width: 16),
-                    const Column(
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                      'Workout Streak',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      'Streak of :'+ currentUserIdDisplay,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
-                        SizedBox(height: 4),
-                        Text(
+                        const SizedBox(height: 4),
+                        const Text(
                       '🔥 7 days in a row!',
                       style: TextStyle(fontSize: 18, color: Colors.deepOrange, fontWeight: FontWeight.w600),
                         ),

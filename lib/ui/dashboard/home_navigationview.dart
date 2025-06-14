@@ -4,8 +4,7 @@ import 'schedule_page.dart';
 import '../profile/profile_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-Future<void> main() async{
-
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(const MaterialApp(
@@ -27,7 +26,7 @@ class _HomeNavigationViewState extends State<HomeNavigationView> {
   final List<Widget> _pages = [
     const DashboardView(),
     const SchedulePage(),
-    const ProfilePage(), // Create this file
+    const ProfilePage(),
   ];
 
   @override
@@ -35,8 +34,21 @@ class _HomeNavigationViewState extends State<HomeNavigationView> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_getTitle()),
-        actions: const [
-          Padding(
+        actions: [
+          
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              // refresh whole dashboard
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HomeNavigationView(),
+                ),
+              );
+            },
+          ),
+          const Padding(
             padding: EdgeInsets.only(right: 16.0),
             child: CircleAvatar(
               backgroundImage: AssetImage('assets/profile_pic_default.jpg'),
@@ -44,11 +56,12 @@ class _HomeNavigationViewState extends State<HomeNavigationView> {
           ),
         ],
       ),
+
       body: IndexedStack(
-        // Content will be displayed here:
         index: _selectedIndex,
         children: _pages,
       ),
+      
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (int index) {
