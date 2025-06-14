@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fitnest_app/ui/authentication/user_viewmodel.dart';
-import 'dashboard_viewmodel.dart';
+import 'view_model/dashboard_viewmodel.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
