@@ -67,8 +67,6 @@ class _DashboardViewState extends State<DashboardView> {
   @override
   Widget build(BuildContext context) {
 
-    //final mockWorkoutSchedule = List<String>.generate(20, (i) => 'Activity #${i+1}');
-
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -182,6 +180,8 @@ class _DashboardViewState extends State<DashboardView> {
               constraints: const BoxConstraints(maxHeight: 300,),
               color: Colors.grey[200],
               child: ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(), 
                 itemCount: todayWorkoutSchedule.length,
                 itemBuilder: (context, index) {
                   var todayWorkoutItem = todayWorkoutSchedule[index];
@@ -226,6 +226,8 @@ class _DashboardViewState extends State<DashboardView> {
                 constraints: const BoxConstraints(maxHeight: 300,),
                 color: Colors.grey[200],
                 child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(), 
                   itemCount: workoutHistory.length,
                   itemBuilder: (context, index) {
                     var workout = workoutHistory[index];
@@ -253,6 +255,8 @@ class _DashboardViewState extends State<DashboardView> {
                 constraints: const BoxConstraints(maxHeight: 300,),
                 color: Colors.grey[200],
                 child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(), 
                   itemCount: nutritionIntake.length,
                   itemBuilder: (context, index) {
                     var nutrition = nutritionIntake[index];
