@@ -95,13 +95,12 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
+    _loadUserData();
   }
 
   void _loadUserData() async {
     final User? currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
-      // _emailController.text = currentUser.email ?? '';
-
       final docSnapshot = await FirebaseFirestore.instance
           .collection('userProfiles')
           .doc(currentUser.uid)
@@ -114,12 +113,10 @@ class _ProfilePageState extends State<ProfilePage> {
         _targetWeightController.text = data['targetWeight']?.toString() ?? '';
         setState(() {
           _selectedPhysiqueGoal = data['physiqueGoal'];
-          _selectedGender = data['gender']; // Load gender
-          // Load birthday if available
+          _selectedGender = data['gender'];
           if (data['birthday'] is Timestamp) {
             _selectedBirthday = (data['birthday'] as Timestamp).toDate();
           } else if (data['birthday'] is String) {
-            // Handle if saved as string
             try {
               _selectedBirthday = DateTime.parse(data['birthday']);
             } catch (e) {
@@ -270,21 +267,15 @@ class _ProfilePageState extends State<ProfilePage> {
           //======================================================FIREBASE ACCOUNT
           IconButton(
             icon: const Icon(Icons.settings),
-            tooltip: 'Firebase Account Settings',
+            tooltip: 'Account information',
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute<ProfileScreen>(
                   builder: (context) => ProfileScreen(
                     appBar: AppBar(
-                      title: const Text('Firebase Account'),
+                      title: const Text('Account'),
                     ),
-                    actions: [
-                      SignedOutAction((context) {
-                        Navigator.of(context).pop(); // Pops the ProfileScreen
-                      }),
-                    ],
-                    children: const [],
                   ),
                 ),
               );
