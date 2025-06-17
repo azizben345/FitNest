@@ -66,14 +66,15 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  // final _emailController = TextEditingController();
+  // final _passwordController = TextEditingController();
   final _heightController = TextEditingController();
   final _weightController = TextEditingController();
   final _targetWeightController = TextEditingController();
 
   String? _selectedPhysiqueGoal;
-  // put here for profile image
+  String? _selectedGender; // New field for Gender
+  DateTime? _selectedBirthday;
 
   final List<String> _physiqueGoals = [
     'Lose Weight',
@@ -84,6 +85,13 @@ class _ProfilePageState extends State<ProfilePage> {
     'General Fitness',
   ];
 
+  final List<String> _genders = [
+    'Male',
+    'Female',
+    'Other',
+    'Prefer not to say',
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -92,7 +100,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void _loadUserData() async {
     final User? currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
-      _emailController.text = currentUser.email ?? '';
+      // _emailController.text = currentUser.email ?? '';
 
       final docSnapshot = await FirebaseFirestore.instance
           .collection('userProfiles')
@@ -106,6 +114,18 @@ class _ProfilePageState extends State<ProfilePage> {
         _targetWeightController.text = data['targetWeight']?.toString() ?? '';
         setState(() {
           _selectedPhysiqueGoal = data['physiqueGoal'];
+          _selectedGender = data['gender']; // Load gender
+          // Load birthday if available
+          if (data['birthday'] is Timestamp) {
+            _selectedBirthday = (data['birthday'] as Timestamp).toDate();
+          } else if (data['birthday'] is String) {
+            // Handle if saved as string
+            try {
+              _selectedBirthday = DateTime.parse(data['birthday']);
+            } catch (e) {
+              print("Error parsing birthday string: $e");
+            }
+          }
         });
       }
     }
@@ -113,8 +133,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
+    // _emailController.dispose();
+    // _passwordController.dispose();
     _heightController.dispose();
     _weightController.dispose();
     _targetWeightController.dispose();
@@ -137,47 +157,47 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     try {
-      if (_emailController.text != currentUser.email) {
-        // This is a simplified attempt. For production, use re-authentication.
-        try {
-          await currentUser.verifyBeforeUpdateEmail(_emailController.text);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text(
-                    'Email update link sent to new email. Verify to complete.'),
-                backgroundColor: Colors.orange),
-          );
-        } on FirebaseAuthException catch (e) {
-          print("Error updating email: ${e.code} - ${e.message}");
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Failed to update email: ${e.message}'),
-                backgroundColor: Colors.red),
-          );
-        }
-      }
+      // if (_emailController.text != currentUser.email) {
+      //   // This is a simplified attempt. For production, use re-authentication.
+      //   try {
+      //     await currentUser.verifyBeforeUpdateEmail(_emailController.text);
+      //     ScaffoldMessenger.of(context).showSnackBar(
+      //       const SnackBar(
+      //           content: Text(
+      //               'Email update link sent to new email. Verify to complete.'),
+      //           backgroundColor: Colors.orange),
+      //     );
+      //   } on FirebaseAuthException catch (e) {
+      //     print("Error updating email: ${e.code} - ${e.message}");
+      //     ScaffoldMessenger.of(context).showSnackBar(
+      //       SnackBar(
+      //           content: Text('Failed to update email: ${e.message}'),
+      //           backgroundColor: Colors.red),
+      //     );
+      //   }
+      // }
 
-      // Update password if a NEW password is provided
-      if (_passwordController.text.isNotEmpty) {
-        try {
-          await currentUser.updatePassword(_passwordController.text);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Password updated successfully!'),
-                backgroundColor: Colors.green),
-          );
-          _passwordController.clear(); // Clear field after successful update
-        } on FirebaseAuthException catch (e) {
-          print("Error updating password: ${e.code} - ${e.message}");
-          // Common error: 'requires-recent-login'
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(
-                    'Failed to update password: ${e.message}. Please log out and back in if this persists.'),
-                backgroundColor: Colors.red),
-          );
-        }
-      }
+      // // Update password if a NEW password is provided
+      // if (_passwordController.text.isNotEmpty) {
+      //   try {
+      //     await currentUser.updatePassword(_passwordController.text);
+      //     ScaffoldMessenger.of(context).showSnackBar(
+      //       const SnackBar(
+      //           content: Text('Password updated successfully!'),
+      //           backgroundColor: Colors.green),
+      //     );
+      //     _passwordController.clear(); // Clear field after successful update
+      //   } on FirebaseAuthException catch (e) {
+      //     print("Error updating password: ${e.code} - ${e.message}");
+      //     // Common error: 'requires-recent-login'
+      //     ScaffoldMessenger.of(context).showSnackBar(
+      //       SnackBar(
+      //           content: Text(
+      //               'Failed to update password: ${e.message}. Please log out and back in if this persists.'),
+      //           backgroundColor: Colors.red),
+      //     );
+      //   }
+      // }
 
       // 2. Save Custom Fitness Data to Firestore
       Map<String, dynamic> fitnessProfileData = {
@@ -185,8 +205,11 @@ class _ProfilePageState extends State<ProfilePage> {
         'weight': double.tryParse(_weightController.text),
         'targetWeight': double.tryParse(_targetWeightController.text),
         'physiqueGoal': _selectedPhysiqueGoal,
-        'lastUpdated': FieldValue
-            .serverTimestamp(), // Timestamp for when it was last updated
+        'gender': _selectedGender, // Save gender
+        'birthday': _selectedBirthday != null
+            ? Timestamp.fromDate(_selectedBirthday!)
+            : null, // Save birthday as Timestamp
+        'lastUpdated': FieldValue.serverTimestamp(),
       };
 
       await FirebaseFirestore.instance
@@ -213,15 +236,40 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  void _showSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+      ),
+    );
+  }
+
+  //Date Picker
+  Future<void> _selectBirthday(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedBirthday ?? DateTime(2000), // Default to year 2000
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != _selectedBirthday) {
+      setState(() {
+        _selectedBirthday = picked;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Profile'), // Title for the profile page
         actions: [
-          // Button to navigate to FirebaseUI ProfileScreen for core auth settings
+          //FIREBSE ACCOUNT
+          //======================================================FIREBASE ACCOUNT
           IconButton(
-            icon: const Icon(Icons.settings), // Icon for Firebase settings
+            icon: const Icon(Icons.settings),
             tooltip: 'Firebase Account Settings',
             onPressed: () {
               Navigator.push(
@@ -229,28 +277,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 MaterialPageRoute<ProfileScreen>(
                   builder: (context) => ProfileScreen(
                     appBar: AppBar(
-                      title: const Text(
-                          'Firebase Account'), // Title for FirebaseUI screen
+                      title: const Text('Firebase Account'),
                     ),
                     actions: [
                       SignedOutAction((context) {
-                        // This action runs when the user signs out from the FirebaseUI ProfileScreen
                         Navigator.of(context).pop(); // Pops the ProfileScreen
-                        // You might want to navigate to a sign-in/welcome screen here
-                        // For example: Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => WelcomeScreen()));
                       }),
                     ],
-                    children: const [
-                      // Optional: Add custom widgets below the FirebaseUI profile sections
-                      // const Divider(),
-                      // Padding(
-                      //   padding: const EdgeInsets.all(2),
-                      //   child: AspectRatio(
-                      //     aspectRatio: 1,
-                      //     child: Image.asset('assets/flutterfire_300x.png'), // Example
-                      //   ),
-                      // ),
-                    ],
+                    children: const [],
                   ),
                 ),
               );
@@ -266,60 +300,72 @@ class _ProfilePageState extends State<ProfilePage> {
             crossAxisAlignment:
                 CrossAxisAlignment.stretch, // Stretch fields across width
             children: [
-              // Profile Image Section
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: Column(
-                  children: [
-                    GestureDetector(
-                      // Tap to pick image
-                      child: CircleAvatar(
-                        radius: 60,
-                        backgroundImage:
-                            AssetImage('assets/profile_pic_default.jpg'),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Your Fitness Profile',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color:
-                                Colors.white, // Ensure theme colors are applied
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                    Text(
-                      'Tap the circle to change your profile picture',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey[600],
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
               // Email Field
-              TextFormField(
-                controller: _emailController,
+              // TextFormField(
+              //   controller: _emailController,
+              //   decoration: const InputDecoration(
+              //     labelText: 'Email',
+              //     prefixIcon: Icon(Icons.email),
+              //     border: OutlineInputBorder(),
+              //   ),
+              //   keyboardType: TextInputType.emailAddress,
+              //   validator: (value) {
+              //     if (value == null || value.isEmpty) {
+              //       return 'Please enter your email';
+              //     }
+              //     if (!value.contains('@')) {
+              //       return 'Please enter a valid email';
+              //     }
+              //     return null;
+              //   },
+              // ),
+
+              // const SizedBox(height: 16),
+
+              // // Password Field (Again, be cautious with this in a real app)
+              // TextFormField(
+              //   controller: _passwordController,
+              //   decoration: const InputDecoration(
+              //     labelText: 'Password',
+              //     prefixIcon: Icon(Icons.lock),
+              //     border: OutlineInputBorder(),
+              //   ),
+              //   obscureText: true,
+              //   validator: (value) {
+              //     if (value == null || value.isEmpty) {
+              //       return 'Please enter your password';
+              //     }
+              //     if (value.length < 6) {
+              //       return 'Password must be at least 6 characters';
+              //     }
+              //     return null;
+              //   },
+              // ),
+
+              // const SizedBox(height: 16),
+
+              // Gender Dropdown
+              DropdownButtonFormField<String>(
+                value: _selectedGender,
                 decoration: const InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email),
+                  labelText: 'Gender',
+                  prefixIcon: Icon(Icons.people),
                   border: OutlineInputBorder(),
                 ),
-                keyboardType: TextInputType.emailAddress,
+                items: _genders.map((String gender) {
+                  return DropdownMenuItem<String>(
+                    value: gender,
+                    child: Text(gender),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedGender = newValue;
+                  });
+                },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter your email';
-                  }
-                  if (!value.contains('@')) {
-                    return 'Please enter a valid email';
+                    return 'Please select your gender';
                   }
                   return null;
                 },
@@ -327,24 +373,30 @@ class _ProfilePageState extends State<ProfilePage> {
 
               const SizedBox(height: 16),
 
-              // Password Field (Again, be cautious with this in a real app)
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock),
-                  border: OutlineInputBorder(),
+              // Birthday Field
+              InkWell(
+                onTap: () => _selectBirthday(context), // Corrected call
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: 'Birthday',
+                    prefixIcon: const Icon(Icons.calendar_today),
+                    border: const OutlineInputBorder(),
+                    errorText: (_selectedBirthday == null &&
+                            _formKey.currentState?.validate() == true)
+                        ? 'Please select your birthday'
+                        : null,
+                  ),
+                  baseStyle: Theme.of(context).textTheme.titleMedium,
+                  child: Text(
+                    _selectedBirthday == null
+                        ? 'Select Date'
+                        : '${_selectedBirthday!.toLocal()}'
+                            .split(' ')[0], // Format date
+                    style: TextStyle(
+                      color: _selectedBirthday == null ? Colors.grey : null,
+                    ),
+                  ),
                 ),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  if (value.length < 6) {
-                    return 'Password must be at least 6 characters';
-                  }
-                  return null;
-                },
               ),
 
               const SizedBox(height: 16),
