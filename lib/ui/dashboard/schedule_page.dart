@@ -19,7 +19,7 @@ class _SchedulePageState extends State<SchedulePage> {
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
 
-  //String currentUserIdDisplay = ''; // to store the current user ID for display
+  String currentUserIdDisplay = ''; // to store the current user ID for display
   List<Map<String, dynamic>> workoutSchedule = [];
   bool isLoading = true;
 
@@ -36,8 +36,8 @@ class _SchedulePageState extends State<SchedulePage> {
       List<Map<String, dynamic>> fetchedWorkoutSchedule = await scheduleViewModel.fetchWorkoutSchedule(currentUserId);
 
       setState(() {
-        //currentUserIdDisplay = currentUserId; // store the current user ID
-        workoutSchedule = fetchedWorkoutSchedule;
+        currentUserIdDisplay = currentUserId; // store the current user ID for add schedule
+        workoutSchedule = fetchedWorkoutSchedule; 
         isLoading = false;  // data fetching complete
       });
     } else {
@@ -48,16 +48,18 @@ class _SchedulePageState extends State<SchedulePage> {
       print('User not logged in.');
     }
   }
-  
-  // final Map<DateTime, List<String>> _workoutSchedule = {
-  //   DateTime.utc(2025, 5, 20): ['Push-ups', 'Running', 'Yoga'],
-  //   DateTime.utc(2025, 5, 21): ['Pull-ups', 'Cycling'],
-  //   DateTime.utc(2025, 5, 22): ['Squats', 'Swimming'],
-  // };
-  // List<String> _getWorkoutsForDay(DateTime day) {
-  //   final normalizedDay = DateTime.utc(day.year, day.month, day.day);
-  //   return _workoutSchedule[normalizedDay] ?? [];
-  // }
+  Future<void> markWorkoutAsCompleted(String workoutId) async {
+    try {
+      await scheduleViewModel.updateWorkoutStatus(workoutId, 'Completed');
+      fetchData(); // Refresh list
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Workout marked as Completed')),
+      );
+    } catch (e) {
+      print('Error updating status: $e');
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +92,7 @@ class _SchedulePageState extends State<SchedulePage> {
               _focusedDay = focusedDay;
             },
 
-            /// 🔥 enables dot indicators on workout days
+            // enables dot indicators on workout days
             eventLoader: (day) {
               final normalizedDay = DateTime.utc(day.year, day.month, day.day);
               return workoutSchedule
@@ -124,9 +126,39 @@ class _SchedulePageState extends State<SchedulePage> {
                               scheduledDate.day == _selectedDay.day) {
                             return ListTile(
                               leading: const Icon(Icons.fitness_center),
-                              title: Text(workoutItem['activityType']),  
-                              subtitle: Text(
-                                  '${workoutItem['description']} \nScheduled at: ${(workoutItem['scheduledTime'])}'),
+                              title: Text(workoutItem['activityType']),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('${workoutItem['description']}'),
+                                  Text('Scheduled at: ${workoutItem['scheduledTime']}'),
+                                  Text(
+                                    'Status: ${workoutItem['status']}',
+                                    style: TextStyle(
+                                      color: workoutItem['status'] == 'Completed'
+                                        ? Colors.green
+                                        : workoutItem['status'] == 'To-do'
+                                          ? Colors.orange
+                                          : Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.check_circle, color: Colors.green),
+                                    tooltip: 'Mark as Completed',
+                                    onPressed: () => markWorkoutAsCompleted(workoutItem['id']),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.edit),
+                                    onPressed: () => _showScheduleDialog(existingWorkout: workoutItem),
+                                  ),
+                                ],
+                              ),
                             );
                           }
                           return Container(); // return empty container if not matching selected day
@@ -135,6 +167,189 @@ class _SchedulePageState extends State<SchedulePage> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _showScheduleDialog(); // open form/dialog for CRUD
+        },
+        child: const Icon(Icons.add),
+      ),
     );
   }
+
+  void _showScheduleDialog({Map<String, dynamic>? existingWorkout}) {
+    final activityController = TextEditingController(
+      text: existingWorkout?['activityType'] ?? '',
+    );
+    final descriptionController = TextEditingController(
+      text: existingWorkout?['description'] ?? '',
+    );
+    String statusValue = existingWorkout?['status'] ?? 'To-do';
+    // final statusController = TextEditingController(
+    //   text: existingWorkout?['status'] ?? 'To-do', 
+    // );
+
+    TimeOfDay selectedTime = existingWorkout != null
+        ? TimeOfDay.fromDateTime(DateTime.parse(existingWorkout['scheduledTime']))
+        : TimeOfDay.now();
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text(existingWorkout == null ? 'Add Workout' : 'Edit Workout'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: activityController,
+                decoration: const InputDecoration(labelText: 'Activity'),
+              ),
+              TextField(
+                controller: descriptionController,
+                decoration: const InputDecoration(labelText: 'Description'),
+              ),
+              DropdownButtonFormField<String>(
+                value: statusValue,
+                decoration: const InputDecoration(labelText: 'Status'),
+                items: ['Completed', 'To-do', 'Skipped'].map((status) {
+                  return DropdownMenuItem(
+                    value: status,
+                    child: Text(status),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      statusValue = value;
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: () async {
+                  final pickedTime = await showTimePicker(
+                    context: context,
+                    initialTime: selectedTime,
+                  );
+                  if (pickedTime != null) {
+                    setState(() {
+                      selectedTime = pickedTime;
+                    });
+                  }
+                },
+                child: Text("Select Time: ${selectedTime.format(context)}"),
+              ),
+            ],
+          ),
+          actions: [
+            if (existingWorkout != null)
+              TextButton(
+                onPressed: () async {
+                  await scheduleViewModel.deleteSchedule(existingWorkout['id']);
+                  Navigator.of(context).pop();
+                  fetchData();
+                },
+                child: const Text("Delete", style: TextStyle(color: Colors.red)),
+              ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final activity = activityController.text.trim();
+                final description = descriptionController.text.trim();
+
+                // combine selected day with selected time
+                final dateTime = DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day, selectedTime.hour, selectedTime.minute,);
+
+                final dateTimeString = dateTime.toIso8601String();
+
+                if (existingWorkout == null) {
+                  await scheduleViewModel.addSchedule(currentUserIdDisplay, activity, description, dateTimeString,);
+                } else {
+                  await scheduleViewModel.updateSchedule(existingWorkout['id'], activity, description, statusValue, dateTimeString,);
+                }
+
+                Navigator.of(context).pop();
+                fetchData();
+              },
+              child: Text(existingWorkout == null ? 'Add' : 'Update'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // void _showScheduleDialog({Map<String, dynamic>? existingWorkout}) {
+    
+  //   final activityController = TextEditingController(
+  //       text: existingWorkout?['activityType'] ?? '');
+  //   final descriptionController = TextEditingController(
+  //       text: existingWorkout?['description'] ?? '');
+
+  //   TimeOfDay selectedTime = existingWorkout != null
+  //     ? TimeOfDay.fromDateTime(DateTime.parse(existingWorkout['scheduledTime']))
+  //     : TimeOfDay.now();
+
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: Text(existingWorkout == null ? 'Add Workout' : 'Edit Workout'),
+  //       content: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           TextField(
+  //             controller: activityController,
+  //             decoration: const InputDecoration(labelText: 'Activity'),
+  //           ),
+  //           TextField(
+  //             controller: descriptionController,
+  //             decoration: const InputDecoration(labelText: 'Description'),
+  //           ),
+  //         ],
+  //       ),
+  //       actions: [
+  //         if (existingWorkout != null)
+  //           TextButton(
+  //             onPressed: () async {
+  //               await scheduleViewModel.deleteSchedule(existingWorkout['id']);
+  //               Navigator.of(context).pop();
+  //               fetchData(); // refresh
+  //             },
+  //             child: const Text("Delete", style: TextStyle(color: Colors.red)),
+  //           ),
+  //         TextButton(
+  //           onPressed: () => Navigator.of(context).pop(),
+  //           child: const Text("Cancel"),
+  //         ),
+  //         ElevatedButton(
+  //           onPressed: () async {
+  //             final activity = activityController.text;
+  //             final description = descriptionController.text;
+  //             final date = _selectedDay.toIso8601String();
+
+  //             if (existingWorkout == null) {
+  //               await scheduleViewModel.addSchedule(currentUserIdDisplay, activity, description, date);
+  //             } else {
+  //               await scheduleViewModel.updateSchedule(
+  //                 existingWorkout['id'],
+  //                 activity,
+  //                 description,
+  //                 date,
+  //               );
+  //             }
+
+  //             Navigator.of(context).pop();
+  //             fetchData(); // refresh list
+  //           },
+  //           child: Text(existingWorkout == null ? 'Add' : 'Update'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
 }

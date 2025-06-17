@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fitnest_app/ui/authentication/user_viewmodel.dart';
 import 'view_model/dashboard_viewmodel.dart';
+import 'view_model/schedule_viewmodel.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -14,8 +15,10 @@ class _DashboardViewState extends State<DashboardView> {
 
   final UserViewModel userViewModel = UserViewModel();
   final DashboardViewModel dashboardViewModel = DashboardViewModel();  
+  final ScheduleViewModel scheduleViewModel = ScheduleViewModel();
   
   String currentUserIdDisplay = ''; // to store the current user ID for display
+  List<Map<String, dynamic>> todayWorkoutSchedule = [];
   List<Map<String, dynamic>> workoutHistory = [];
   List<Map<String, dynamic>> nutritionIntake = [];
   bool isLoading = true;
@@ -30,11 +33,24 @@ class _DashboardViewState extends State<DashboardView> {
     String? currentUserId = await userViewModel.getUserUid(); 
 
     if (currentUserId != null) {
+      // List<Map<String, dynamic>> fetchedTodayWorkoutSchedule = await dashboardViewModel.fetchTodayWorkoutSchedule(currentUserId);
+      List<Map<String, dynamic>> fetchedTodayWorkoutSchedule = await scheduleViewModel.fetchWorkoutSchedule(currentUserId);
       List<Map<String, dynamic>> fetchedWorkoutHistory = await dashboardViewModel.fetchWorkoutHistory(currentUserId);
       List<Map<String, dynamic>> fetchedNutritionIntake = await dashboardViewModel.fetchNutritionIntake(currentUserId);
 
+      // filter for only today's workout schedule
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+
+      List<Map<String, dynamic>> filteredToday = fetchedTodayWorkoutSchedule.where((workout) {
+        final scheduledDateTime = DateTime.parse(workout['scheduledTime']);
+        final workoutDate = DateTime(scheduledDateTime.year, scheduledDateTime.month, scheduledDateTime.day);
+        return workoutDate == today;
+      }).toList();
+
       setState(() {
         currentUserIdDisplay = currentUserId; // store the current user ID
+        todayWorkoutSchedule = filteredToday;
         workoutHistory = fetchedWorkoutHistory;
         nutritionIntake = fetchedNutritionIntake;
         isLoading = false;  // data fetching complete
@@ -51,7 +67,7 @@ class _DashboardViewState extends State<DashboardView> {
   @override
   Widget build(BuildContext context) {
 
-    final mockWorkoutSchedule = List<String>.generate(20, (i) => 'Activity #${i+1}');
+    //final mockWorkoutSchedule = List<String>.generate(20, (i) => 'Activity #${i+1}');
 
     return Scaffold(
       body: SafeArea(
@@ -75,7 +91,7 @@ class _DashboardViewState extends State<DashboardView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                      'Streak of :'+ currentUserIdDisplay,
+                      'Streak of :\n$currentUserIdDisplay',
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
@@ -158,22 +174,40 @@ class _DashboardViewState extends State<DashboardView> {
             ),
             const SizedBox(height: 16),
             const Text(
-          'Today\'s Workout Schedule',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              'Today\'s Workout Schedule',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Container(
-              height: 300,
+              constraints: const BoxConstraints(maxHeight: 300,),
               color: Colors.grey[200],
               child: ListView.builder(
-                itemCount: mockWorkoutSchedule.length,
+                itemCount: todayWorkoutSchedule.length,
                 itemBuilder: (context, index) {
+                  var todayWorkoutItem = todayWorkoutSchedule[index];
                   return Card(
                     child: ListTile(
                       leading: const Icon(Icons.run_circle),
-                      title: Text(mockWorkoutSchedule[index]),
-                      subtitle: Text('Mock Data: ${index + 1}'),
-                      trailing: const Icon(Icons.more_horiz),
+                      title: Text(todayWorkoutItem['activityType']),
+                      subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('${todayWorkoutItem['description']}'),
+                                  Text('Scheduled at: ${todayWorkoutItem['scheduledTime']}'),
+                                  Text(
+                                    'Status: ${todayWorkoutItem['status']}',
+                                    style: TextStyle(
+                                      color: todayWorkoutItem['status'] == 'Completed'
+                                        ? Colors.green
+                                        : todayWorkoutItem['status'] == 'To-do'
+                                          ? Colors.orange
+                                          : Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                      //trailing: const Icon(Icons.more_horiz),
                     ),
                   );
                 },
@@ -189,7 +223,7 @@ class _DashboardViewState extends State<DashboardView> {
             isLoading
               ? const Center(child: CircularProgressIndicator())
               : Container(
-                height: 300,
+                constraints: const BoxConstraints(maxHeight: 300,),
                 color: Colors.grey[200],
                 child: ListView.builder(
                   itemCount: workoutHistory.length,
@@ -200,7 +234,7 @@ class _DashboardViewState extends State<DashboardView> {
                         leading: const Icon(Icons.run_circle),
                         title: Text(workout['activityType']),
                         subtitle: Text('Duration: ${workout['duration']} minutes \nTimestamp: ${workout['timestamp']}'),
-                        trailing: const Icon(Icons.more_horiz),
+                        //trailing: const Icon(Icons.more_horiz),
                         ),
                     );
                   },
@@ -216,7 +250,7 @@ class _DashboardViewState extends State<DashboardView> {
             isLoading
               ? const Center(child: CircularProgressIndicator())
               : Container(
-                height: 300,
+                constraints: const BoxConstraints(maxHeight: 300,),
                 color: Colors.grey[200],
                 child: ListView.builder(
                   itemCount: nutritionIntake.length,
@@ -227,7 +261,7 @@ class _DashboardViewState extends State<DashboardView> {
                         leading: const Icon(Icons.restaurant),
                         title: Text(nutrition['mealType']),
                         subtitle: Text('Calorie: ${nutrition['calories']} cal \nMeal Time: ${nutrition['mealTime']}'),
-                        trailing: const Icon(Icons.more_horiz),
+                        //trailing: const Icon(Icons.more_horiz),
                         ),
                     );
                   },
