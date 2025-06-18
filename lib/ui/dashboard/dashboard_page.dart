@@ -13,6 +13,10 @@ class _DashboardViewState extends State<DashboardView> {
   final DashboardViewModel viewModel = DashboardViewModel();
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 =======
 
 >>>>>>> Stashed changes
