@@ -11,6 +11,10 @@ class DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<DashboardView> {
   final DashboardViewModel viewModel = DashboardViewModel();
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
   List<Map<String, dynamic>> workoutHistory = [];
   List<Map<String, dynamic>> nutritionIntake = [];
   bool isLoading = true;

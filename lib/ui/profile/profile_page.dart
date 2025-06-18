@@ -2,63 +2,9 @@ import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../profile/profile_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     appBar: AppBar(
-  //       actions: [
-  //         IconButton(
-  //           icon: const Icon(Icons.person),
-  //           onPressed: () {
-  //             Navigator.push(
-  //               context,
-  //               MaterialPageRoute<ProfileScreen>(
-  //                 builder: (context) => ProfileScreen(
-  //                   appBar: AppBar(
-  //                     title: const Text('User Profile'),
-  //                   ),
-  //                   actions: [
-  //                     SignedOutAction((context) {
-  //                       Navigator.of(context).pop();
-  //                     })
-  //                   ],
-  //                   children: [
-  //                     const Divider(),
-  //                     Padding(
-  //                       padding: const EdgeInsets.all(2),
-  //                       child: AspectRatio(
-  //                         aspectRatio: 1,
-  //                         child: Image.asset('flutterfire_300x.png'),
-  //                       ),
-  //                     ),
-  //                   ],
-  //                 ),
-  //               ),
-  //             );
-  //           },
-  //         )
-  //       ],
-  //       automaticallyImplyLeading: false,
-  //     ),
-  //     body: Center(
-  //       child: Column(
-  //         children: [
-  //           Image.asset('dash.png'),
-  //           Text(
-  //             'Welcome!',
-  //             style: Theme.of(context).textTheme.displaySmall,
-  //           ),
-  //           const SignOutButton(),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -66,8 +12,6 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final _formKey = GlobalKey<FormState>();
-  // final _emailController = TextEditingController();
-  // final _passwordController = TextEditingController();
   final _heightController = TextEditingController();
   final _weightController = TextEditingController();
   final _targetWeightController = TextEditingController();
@@ -75,6 +19,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String? _selectedPhysiqueGoal;
   String? _selectedGender; // New field for Gender
   DateTime? _selectedBirthday;
+  String? _selectedActivityLevel;
 
   final List<String> _physiqueGoals = [
     'Lose Weight',
@@ -90,6 +35,14 @@ class _ProfilePageState extends State<ProfilePage> {
     'Female',
     'Other',
     'Prefer not to say',
+  ];
+
+  final List<String> _activityLevels = [
+    'Sedentary: No exercise', // little to no exercise
+    'Lightly Active: 1-3 days/week', // Light exercise/sports 1-3 days/week
+    'Moderately Active: 3-5 days/week', // Moderate exercise/sports 3-5 days/week
+    'Very Active: 6-7 days a week', // Hard exercise/sports 6-7 days a week
+    'Extra Active', // Very hard exercise/physical job
   ];
 
   @override
@@ -114,6 +67,7 @@ class _ProfilePageState extends State<ProfilePage> {
         setState(() {
           _selectedPhysiqueGoal = data['physiqueGoal'];
           _selectedGender = data['gender'];
+          _selectedActivityLevel = data['activityLevel'];
           if (data['birthday'] is Timestamp) {
             _selectedBirthday = (data['birthday'] as Timestamp).toDate();
           } else if (data['birthday'] is String) {
@@ -154,49 +108,42 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     try {
-      // if (_emailController.text != currentUser.email) {
-      //   // This is a simplified attempt. For production, use re-authentication.
-      //   try {
-      //     await currentUser.verifyBeforeUpdateEmail(_emailController.text);
-      //     ScaffoldMessenger.of(context).showSnackBar(
-      //       const SnackBar(
-      //           content: Text(
-      //               'Email update link sent to new email. Verify to complete.'),
-      //           backgroundColor: Colors.orange),
-      //     );
-      //   } on FirebaseAuthException catch (e) {
-      //     print("Error updating email: ${e.code} - ${e.message}");
-      //     ScaffoldMessenger.of(context).showSnackBar(
-      //       SnackBar(
-      //           content: Text('Failed to update email: ${e.message}'),
-      //           backgroundColor: Colors.red),
-      //     );
-      //   }
-      // }
+      double? currentWeight = double.tryParse(_weightController.text);
+      double? targetWeight = double.tryParse(_targetWeightController.text);
+      double weightLossTargetKgPerWeek = 0.0; // Default to 0
 
-      // // Update password if a NEW password is provided
-      // if (_passwordController.text.isNotEmpty) {
-      //   try {
-      //     await currentUser.updatePassword(_passwordController.text);
-      //     ScaffoldMessenger.of(context).showSnackBar(
-      //       const SnackBar(
-      //           content: Text('Password updated successfully!'),
-      //           backgroundColor: Colors.green),
-      //     );
-      //     _passwordController.clear(); // Clear field after successful update
-      //   } on FirebaseAuthException catch (e) {
-      //     print("Error updating password: ${e.code} - ${e.message}");
-      //     // Common error: 'requires-recent-login'
-      //     ScaffoldMessenger.of(context).showSnackBar(
-      //       SnackBar(
-      //           content: Text(
-      //               'Failed to update password: ${e.message}. Please log out and back in if this persists.'),
-      //           backgroundColor: Colors.red),
-      //     );
-      //   }
-      // }
+      // Calculate weightLossTargetKgPerWeek based on physique goal
+      if (_selectedPhysiqueGoal == 'Lose Weight' &&
+          currentWeight != null &&
+          targetWeight != null) {
+        if (currentWeight > targetWeight) {
+          // A reasonable weekly loss for most healthy individuals.
+          // You might want to let the user select this, or make it dynamic.
+          weightLossTargetKgPerWeek = 0.5; // Example: 0.5 kg per week
+        } else {
+          // If current weight is not greater than target for 'Lose Weight',
+          // this might indicate an error or a different goal,
+          // so we set target loss to 0 to avoid negative calories.
+          weightLossTargetKgPerWeek = 0.0;
+        }
+      } else if (_selectedPhysiqueGoal == 'Build Muscle' ||
+          _selectedPhysiqueGoal == 'Maintain Weight') {
+        // For building muscle or maintaining, we aim for maintenance or slight surplus.
+        // We can set weightLossTargetKgPerWeek to a small negative value for gain, or 0 for maintenance
+        // For calorie calculation, a positive deficit value means weight loss,
+        // so for gain, we need a "negative deficit" (surplus).
+        // Let's store a positive value for "target change".
+        // The dashboard viewmodel's calorie calculation will interpret this.
+        if (_selectedPhysiqueGoal == 'Build Muscle') {
+          // Example: Aim for 0.25 kg gain per week (represented as -0.25 for a "negative loss target")
+          weightLossTargetKgPerWeek = -0.25; // Indicates a calorie surplus goal
+        } else {
+          // Maintain Weight
+          weightLossTargetKgPerWeek = 0.0; // No deficit/surplus goal
+        }
+      }
 
-      // 2. Save Custom Fitness Data to Firestore
+      // Save Custom Fitness Data to Firestore
       Map<String, dynamic> fitnessProfileData = {
         'height': double.tryParse(_heightController.text),
         'weight': double.tryParse(_weightController.text),
@@ -263,18 +210,18 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         title: const Text('My Profile'), // Title for the profile page
         actions: [
-          //FIREBSE ACCOUNT
-          //======================================================FIREBASE ACCOUNT
+          //Settings
+          //======================================================Setting
           IconButton(
             icon: const Icon(Icons.settings),
-            tooltip: 'Account information',
+            tooltip: 'Settings',
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute<ProfileScreen>(
                   builder: (context) => ProfileScreen(
                     appBar: AppBar(
-                      title: const Text('Account'),
+                      title: const Text('Setting'),
                     ),
                   ),
                 ),
@@ -490,6 +437,35 @@ class _ProfilePageState extends State<ProfilePage> {
 
               const SizedBox(height: 30),
 
+              // NEW: Activity Level Dropdown
+              DropdownButtonFormField<String>(
+                value: _selectedActivityLevel,
+                decoration: const InputDecoration(
+                  labelText: 'Activity Level',
+                  prefixIcon: Icon(Icons.directions_run),
+                  border: OutlineInputBorder(),
+                ),
+                items: _activityLevels.map((String level) {
+                  return DropdownMenuItem<String>(
+                    value: level,
+                    child: Text(level),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedActivityLevel = newValue;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please select your activity level';
+                  }
+                  return null;
+                },
+              ),
+
+              const SizedBox(height: 30),
+
               // Save Button
               ElevatedButton(
                 onPressed: _saveProfile,
@@ -508,8 +484,8 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 20),
 
-              // FirebaseUI Sign Out Button (optional, as you have it in MainNavigationView's AppBar too)
-              const SignOutButton(),
+              // // FirebaseUI Sign Out Button (optional, as you have it in MainNavigationView's AppBar too)
+              // const SignOutButton(),
             ],
           ),
         ),
