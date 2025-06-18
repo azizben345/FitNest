@@ -1,62 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
 import 'dart:math';
->>>>>>> Stashed changes
-=======
-import 'dart:math';
->>>>>>> Stashed changes
-=======
-import 'dart:math';
->>>>>>> Stashed changes
-=======
-import 'dart:math';
->>>>>>> Stashed changes
-=======
-import 'dart:math';
->>>>>>> Stashed changes
-=======
-import 'dart:math';
->>>>>>> Stashed changes
-=======
-import 'dart:math';
->>>>>>> Stashed changes
-=======
-import 'dart:math';
->>>>>>> Stashed changes
-=======
-import 'dart:math';
->>>>>>> Stashed changes
-=======
-import 'dart:math';
->>>>>>> Stashed changes
 
 class DashboardViewModel {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<List<Map<String, dynamic>>> fetchWorkoutHistory() async {
-    final user = _auth.currentUser; // Use _auth instance
-    if (user == null) {
-      print("No user logged in to fetch workout history.");
-      return [];
-    }
+  Future<List<Map<String, dynamic>>> fetchWorkoutHistory(String userId) async {
     try {
       // Filter by current user's ID assuming 'userId' field in workoutHistory
       QuerySnapshot snapshot = await _firestore
           .collection('workoutHistory')
-          .where('userId', isEqualTo: user.uid)
+          .where('userId', isEqualTo: userId)
           .orderBy('timestamp', descending: true)
           .get();
 
@@ -77,129 +33,14 @@ class DashboardViewModel {
     }
   }
 
-  // Future<List<Map<String, dynamic>>> fetchWorkoutHistory() async {
-  //   try {
-  //     CollectionReference workoutCollection =
-  //         FirebaseFirestore.instance.collection('workoutHistory');
-
-  //     QuerySnapshot snapshot = await workoutCollection.get();
-
-  //     List<Map<String, dynamic>> fetchedWorkoutHistory =
-  //         snapshot.docs.map((doc) {
-  //       return {
-  //         'id': doc.id,
-  //         'activityType': doc['activityType'],
-  //         'duration': doc['duration'],
-  //         'timestamp': formatTimestamp(doc['timestamp']),
-  //       };
-  //     }).toList();
-
-  //     return fetchedWorkoutHistory;
-  //   } catch (e) {
-  //     print('Error fetching workout history: $e');
-  //     return [];
-  //   }
-  // }
-
-  // Future<List<Map<String, dynamic>>> fetchNutritionIntake() async {
-  //   try {
-  //     CollectionReference nutritionCollection =
-  //         FirebaseFirestore.instance.collection('nutritionIntake');
-
-  //     QuerySnapshot snapshot = await nutritionCollection.get();
-
-  //     List<Map<String, dynamic>> fetchedNutritionIntake =
-  //         snapshot.docs.map((doc) {
-  //       return {
-  //         'id': doc.id,
-  //         'calories': doc['calories'],
-  //         'mealTime': formatTimestamp(doc['mealTime']),
-  //         'mealType': doc['mealType'],
-  //       };
-  //     }).toList();
-
-  //     return fetchedNutritionIntake;
-  //   } catch (e) {
-  //     print('Error fetching nutrition intake: $e');
-  //     return [];
-  //   }
-  // }
-
-  Future<List<Map<String, dynamic>>> fetchNutritionIntake() async {
-    final user = _auth.currentUser; // Get current user
-    if (user == null) {
-      print("No user logged in to fetch nutrition intake.");
-      return [];
-    }
-
+  Future<List<Map<String, dynamic>>> fetchNutritionIntake(String userId) async {
     try {
       final querySnapshot = await _firestore
           .collection('nutritionIntake')
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-          .doc(user.uid) // Document for the specific user
-          .collection('meals') // Subcollection of meals for that user
-          .orderBy('mealTime', descending: true)
-          .limit(30) // Fetch enough data for the chart (e.g., last 30 entries)
-=======
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-          .doc(user.uid)
+          .doc(userId)
           .collection('meals')
           .orderBy('mealTime', descending: true)
           .limit(30)
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
           .get();
 
       // Return data, keeping mealTime as Timestamp object for flexibility
@@ -207,53 +48,12 @@ class DashboardViewModel {
         return {
           'id': doc.id,
           'calories': (doc.data()?['calories'] as num?)?.toDouble() ?? 0.0,
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-          'mealTime':
-              doc.data()?['mealTime'] as Timestamp?, // Keep as Timestamp!
-=======
           'mealTime': doc.data()?['mealTime'] as Timestamp?,
->>>>>>> Stashed changes
-=======
-          'mealTime': doc.data()?['mealTime'] as Timestamp?,
->>>>>>> Stashed changes
-=======
-          'mealTime': doc.data()?['mealTime'] as Timestamp?,
->>>>>>> Stashed changes
-=======
-          'mealTime': doc.data()?['mealTime'] as Timestamp?,
->>>>>>> Stashed changes
-=======
-          'mealTime': doc.data()?['mealTime'] as Timestamp?,
->>>>>>> Stashed changes
-=======
-          'mealTime': doc.data()?['mealTime'] as Timestamp?,
->>>>>>> Stashed changes
-=======
-          'mealTime': doc.data()?['mealTime'] as Timestamp?,
->>>>>>> Stashed changes
-=======
-          'mealTime': doc.data()?['mealTime'] as Timestamp?,
->>>>>>> Stashed changes
-=======
-          'mealTime': doc.data()?['mealTime'] as Timestamp?,
->>>>>>> Stashed changes
-=======
-          'mealTime': doc.data()?['mealTime'] as Timestamp?,
->>>>>>> Stashed changes
           'mealType': doc.data()?['mealType'] as String? ?? 'N/A',
         };
       }).toList();
     } catch (e) {
-      print('Error fetching nutrition intake for user ${user.uid}: $e');
+      print('Error fetching nutrition intake for user $userId: $e');
       return [];
     }
   }

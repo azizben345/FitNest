@@ -12,56 +12,12 @@ class DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<DashboardView> {
-  final DashboardViewModel viewModel = DashboardViewModel();
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-
-<<<<<<< HEAD
->>>>>>> Stashed changes
-=======
-
->>>>>>> Stashed changes
-=======
-
->>>>>>> Stashed changes
-=======
-
->>>>>>> Stashed changes
-=======
-
->>>>>>> Stashed changes
-=======
-
->>>>>>> Stashed changes
-=======
-
->>>>>>> Stashed changes
-=======
-
->>>>>>> Stashed changes
-=======
-
->>>>>>> Stashed changes
-=======
-
->>>>>>> Stashed changes
-=======
   final UserViewModel userViewModel = UserViewModel();
-  final DashboardViewModel dashboardViewModel = DashboardViewModel();  
+  final DashboardViewModel dashboardViewModel = DashboardViewModel();
   final ScheduleViewModel scheduleViewModel = ScheduleViewModel();
-  
+
   String currentUserIdDisplay = ''; // to store the current user ID for display
   List<Map<String, dynamic>> todayWorkoutSchedule = [];
->>>>>>> 413aa3dffe1a8545ad66e816a308cbe5eea98d56
   List<Map<String, dynamic>> workoutHistory = [];
   List<Map<String, dynamic>> nutritionIntake = [];
   bool isLoading = true;
@@ -73,32 +29,25 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> fetchData() async {
-<<<<<<< HEAD
-    List<Map<String, dynamic>> fetchedWorkoutHistory =
-        await viewModel.fetchWorkoutHistory();
-    List<Map<String, dynamic>> fetchedNutritionIntake =
-        await viewModel.fetchNutritionIntake();
-    setState(() {
-      workoutHistory = fetchedWorkoutHistory;
-      nutritionIntake = fetchedNutritionIntake;
-      isLoading = false; // loading is complete
-    });
-=======
-    String? currentUserId = await userViewModel.getUserUid(); 
+    String? currentUserId = await userViewModel.getUserUid();
 
     if (currentUserId != null) {
-      // List<Map<String, dynamic>> fetchedTodayWorkoutSchedule = await dashboardViewModel.fetchTodayWorkoutSchedule(currentUserId);
-      List<Map<String, dynamic>> fetchedTodayWorkoutSchedule = await scheduleViewModel.fetchWorkoutSchedule(currentUserId);
-      List<Map<String, dynamic>> fetchedWorkoutHistory = await dashboardViewModel.fetchWorkoutHistory(currentUserId);
-      List<Map<String, dynamic>> fetchedNutritionIntake = await dashboardViewModel.fetchNutritionIntake(currentUserId);
+      List<Map<String, dynamic>> fetchedTodayWorkoutSchedule =
+          await scheduleViewModel.fetchWorkoutSchedule(currentUserId);
+      List<Map<String, dynamic>> fetchedWorkoutHistory =
+          await dashboardViewModel.fetchWorkoutHistory(currentUserId);
+      List<Map<String, dynamic>> fetchedNutritionIntake =
+          await dashboardViewModel.fetchNutritionIntake(currentUserId);
 
       // filter for only today's workout schedule
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
 
-      List<Map<String, dynamic>> filteredToday = fetchedTodayWorkoutSchedule.where((workout) {
+      List<Map<String, dynamic>> filteredToday =
+          fetchedTodayWorkoutSchedule.where((workout) {
         final scheduledDateTime = DateTime.parse(workout['scheduledTime']);
-        final workoutDate = DateTime(scheduledDateTime.year, scheduledDateTime.month, scheduledDateTime.day);
+        final workoutDate = DateTime(scheduledDateTime.year,
+            scheduledDateTime.month, scheduledDateTime.day);
         return workoutDate == today;
       }).toList();
 
@@ -107,7 +56,7 @@ class _DashboardViewState extends State<DashboardView> {
         todayWorkoutSchedule = filteredToday;
         workoutHistory = fetchedWorkoutHistory;
         nutritionIntake = fetchedNutritionIntake;
-        isLoading = false;  // data fetching complete
+        isLoading = false; // data fetching complete
       });
     } else {
       // handle the case where the user is not logged in
@@ -116,23 +65,15 @@ class _DashboardViewState extends State<DashboardView> {
       });
       print('User not logged in.');
     }
->>>>>>> 413aa3dffe1a8545ad66e816a308cbe5eea98d56
   }
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    final mockWorkoutSchedule =
-        List<String>.generate(20, (i) => 'Activity #${i + 1}');
-=======
->>>>>>> 413aa3dffe1a8545ad66e816a308cbe5eea98d56
-
     return Scaffold(
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
-<<<<<<< HEAD
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -148,16 +89,16 @@ class _DashboardViewState extends State<DashboardView> {
                         Icon(Icons.local_fire_department,
                             color: Colors.orange[700], size: 36),
                         const SizedBox(width: 16),
-                        const Column(
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Workout Streak',
-                              style: TextStyle(
+                              'Streak of :\n$currentUserIdDisplay',
+                              style: const TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.bold),
                             ),
-                            SizedBox(height: 4),
-                            Text(
+                            const SizedBox(height: 4),
+                            const Text(
                               '🔥 7 days in a row!',
                               style: TextStyle(
                                   fontSize: 18,
@@ -185,32 +126,6 @@ class _DashboardViewState extends State<DashboardView> {
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
-=======
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Workout Streak Section
-            Card(
-              color: Colors.green[50],
-              margin: const EdgeInsets.only(bottom: 16),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                child: Row(
-                  children: [
-                    Icon(Icons.local_fire_department, color: Colors.orange[700], size: 36),
-                    const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                      'Streak of :\n$currentUserIdDisplay',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                      '🔥 7 days in a row!',
-                      style: TextStyle(fontSize: 18, color: Colors.deepOrange, fontWeight: FontWeight.w600),
->>>>>>> 413aa3dffe1a8545ad66e816a308cbe5eea98d56
                         ),
                         PieChartSectionData(
                           value: 50,
@@ -270,17 +185,38 @@ class _DashboardViewState extends State<DashboardView> {
                 ),
                 const SizedBox(height: 8),
                 Container(
-                  height: 300,
+                  constraints: const BoxConstraints(maxHeight: 300),
                   color: Colors.grey[200],
                   child: ListView.builder(
-                    itemCount: mockWorkoutSchedule.length,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: todayWorkoutSchedule.length,
                     itemBuilder: (context, index) {
+                      var todayWorkoutItem = todayWorkoutSchedule[index];
                       return Card(
                         child: ListTile(
                           leading: const Icon(Icons.run_circle),
-                          title: Text(mockWorkoutSchedule[index]),
-                          subtitle: Text('Mock Data: ${index + 1}'),
-                          trailing: const Icon(Icons.more_horiz),
+                          title: Text(todayWorkoutItem['activityType']),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('${todayWorkoutItem['description']}'),
+                              Text(
+                                  'Scheduled at: ${todayWorkoutItem['scheduledTime']}'),
+                              Text(
+                                'Status: ${todayWorkoutItem['status']}',
+                                style: TextStyle(
+                                  color: todayWorkoutItem['status'] ==
+                                          'Completed'
+                                      ? Colors.green
+                                      : todayWorkoutItem['status'] == 'To-do'
+                                          ? Colors.orange
+                                          : Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },
@@ -296,9 +232,11 @@ class _DashboardViewState extends State<DashboardView> {
                 isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : Container(
-                        height: 300,
+                        constraints: const BoxConstraints(maxHeight: 300),
                         color: Colors.grey[200],
                         child: ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
                           itemCount: workoutHistory.length,
                           itemBuilder: (context, index) {
                             var workout = workoutHistory[index];
@@ -308,7 +246,6 @@ class _DashboardViewState extends State<DashboardView> {
                                 title: Text(workout['activityType']),
                                 subtitle: Text(
                                     'Duration: ${workout['duration']} minutes \nTimestamp: ${workout['timestamp']}'),
-                                trailing: const Icon(Icons.more_horiz),
                               ),
                             );
                           },
@@ -324,9 +261,11 @@ class _DashboardViewState extends State<DashboardView> {
                 isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : Container(
-                        height: 300,
+                        constraints: const BoxConstraints(maxHeight: 300),
                         color: Colors.grey[200],
                         child: ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
                           itemCount: nutritionIntake.length,
                           itemBuilder: (context, index) {
                             var nutrition = nutritionIntake[index];
@@ -336,130 +275,13 @@ class _DashboardViewState extends State<DashboardView> {
                                 title: Text(nutrition['mealType']),
                                 subtitle: Text(
                                     'Calorie: ${nutrition['calories']} cal \nMeal Time: ${nutrition['mealTime']}'),
-                                trailing: const Icon(Icons.more_horiz),
                               ),
                             );
                           },
                         ),
                       ),
-                // Container(
-                //   height: 100,
-                //   color: Colors.grey[200],
-                //   child: const Center(child: Text('Today and Yesterday Nutrition Intake')),
-                // ),
               ],
             ),
-<<<<<<< HEAD
-=======
-            const SizedBox(height: 16),
-            const Text(
-              'Today\'s Workout Schedule',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              constraints: const BoxConstraints(maxHeight: 300,),
-              color: Colors.grey[200],
-              child: ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(), 
-                itemCount: todayWorkoutSchedule.length,
-                itemBuilder: (context, index) {
-                  var todayWorkoutItem = todayWorkoutSchedule[index];
-                  return Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.run_circle),
-                      title: Text(todayWorkoutItem['activityType']),
-                      subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('${todayWorkoutItem['description']}'),
-                                  Text('Scheduled at: ${todayWorkoutItem['scheduledTime']}'),
-                                  Text(
-                                    'Status: ${todayWorkoutItem['status']}',
-                                    style: TextStyle(
-                                      color: todayWorkoutItem['status'] == 'Completed'
-                                        ? Colors.green
-                                        : todayWorkoutItem['status'] == 'To-do'
-                                          ? Colors.orange
-                                          : Colors.red,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                      //trailing: const Icon(Icons.more_horiz),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            const Text(
-              'Workout History',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : Container(
-                constraints: const BoxConstraints(maxHeight: 300,),
-                color: Colors.grey[200],
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(), 
-                  itemCount: workoutHistory.length,
-                  itemBuilder: (context, index) {
-                    var workout = workoutHistory[index];
-                    return Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.run_circle),
-                        title: Text(workout['activityType']),
-                        subtitle: Text('Duration: ${workout['duration']} minutes \nTimestamp: ${workout['timestamp']}'),
-                        //trailing: const Icon(Icons.more_horiz),
-                        ),
-                    );
-                  },
-                ),
-              ),
-            const SizedBox(height: 16),
-
-            const Text(
-              'Nutrition Intake',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : Container(
-                constraints: const BoxConstraints(maxHeight: 300,),
-                color: Colors.grey[200],
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(), 
-                  itemCount: nutritionIntake.length,
-                  itemBuilder: (context, index) {
-                    var nutrition = nutritionIntake[index];
-                    return Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.restaurant),
-                        title: Text(nutrition['mealType']),
-                        subtitle: Text('Calorie: ${nutrition['calories']} cal \nMeal Time: ${nutrition['mealTime']}'),
-                        //trailing: const Icon(Icons.more_horiz),
-                        ),
-                    );
-                  },
-                ),
-              ),
-            // Container(
-            //   height: 100,
-            //   color: Colors.grey[200],
-            //   child: const Center(child: Text('Today and Yesterday Nutrition Intake')),
-            // ),
-          ],
-        ),
->>>>>>> 413aa3dffe1a8545ad66e816a308cbe5eea98d56
           ),
         ),
       ),
@@ -537,9 +359,3 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 }
-
-// void main() {
-//   runApp(const MaterialApp(
-//     home: DashboardView(),
-//   ));
-// }
