@@ -5,6 +5,10 @@ import 'package:intl/intl.dart';
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+import 'dart:math';
+>>>>>>> Stashed changes
 =======
 import 'dart:math';
 >>>>>>> Stashed changes
@@ -115,11 +119,14 @@ class DashboardViewModel {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
           .doc(user.uid) // Document for the specific user
           .collection('meals') // Subcollection of meals for that user
           .orderBy('mealTime', descending: true)
           .limit(30) // Fetch enough data for the chart (e.g., last 30 entries)
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -133,6 +140,9 @@ class DashboardViewModel {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -151,8 +161,12 @@ class DashboardViewModel {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
           'mealTime':
               doc.data()?['mealTime'] as Timestamp?, // Keep as Timestamp!
+=======
+          'mealTime': doc.data()?['mealTime'] as Timestamp?,
+>>>>>>> Stashed changes
 =======
           'mealTime': doc.data()?['mealTime'] as Timestamp?,
 >>>>>>> Stashed changes
