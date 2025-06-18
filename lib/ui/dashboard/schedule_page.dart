@@ -40,14 +40,14 @@ class _SchedulePageState extends State<SchedulePage> {
         workoutSchedule = fetchedWorkoutSchedule; 
         isLoading = false;  // data fetching complete
       });
-    } else {
-      // handle the case where the user is not logged in
-      setState(() {
-        isLoading = false;
-      });
-      print('User not logged in.');
+      } else {
+        // handle the case where the user is not logged in
+        setState(() {
+          isLoading = false;
+        });
+        print('User not logged in.');
+      };
     }
-  }
   Future<void> markWorkoutAsCompleted(String workoutId) async {
     try {
       await scheduleViewModel.updateWorkoutStatus(workoutId, 'Completed');

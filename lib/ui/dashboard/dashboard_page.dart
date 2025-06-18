@@ -3,6 +3,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:fitnest_app/ui/authentication/user_viewmodel.dart';
 import 'view_model/dashboard_viewmodel.dart';
 import 'view_model/schedule_viewmodel.dart';
+// page for adding workout and nutrition log:
+import 'package:fitnest_app/ui/activity/activity.dart';
+import 'package:fitnest_app/ui/dashboard/view_model/nutrition_dashboard.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -55,14 +58,14 @@ class _DashboardViewState extends State<DashboardView> {
         nutritionIntake = fetchedNutritionIntake;
         isLoading = false;  // data fetching complete
       });
-    } else {
-      // handle the case where the user is not logged in
-      setState(() {
-        isLoading = false;
-      });
-      print('User not logged in.');
+      } else {
+        // handle the case where the user is not logged in
+        setState(() {
+          isLoading = false;
+        });
+        print('User not logged in.');
+      }
     }
-  }
   
   @override
   Widget build(BuildContext context) {
@@ -271,86 +274,57 @@ class _DashboardViewState extends State<DashboardView> {
                   },
                 ),
               ),
-            // Container(
-            //   height: 100,
-            //   color: Colors.grey[200],
-            //   child: const Center(child: Text('Today and Yesterday Nutrition Intake')),
-            // ),
           ],
         ),
           ),
         ),
       ),
 
-      // Dashboard filter button
+      // navigation button to add workout or nutrition log
       floatingActionButton: Builder(
         builder: (context) => FloatingActionButton(
-          onPressed: () {
-            showModalBottomSheet(
-              context: context,
-              builder: (BuildContext context) {
-                bool showTodaySchedule = true;
-                bool showWorkoutHistory = true;
-                bool showNutritionIntake = true;
-
-                return StatefulBuilder(
-                  builder: (BuildContext context, StateSetter setState) {
-                    return Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Filter Content Display',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          CheckboxListTile(
-                            title: const Text('Today\'s Schedule'),
-                            value: showTodaySchedule,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                showTodaySchedule = value ?? false;
-                              });
-                            },
-                          ),
-                          CheckboxListTile(
-                            title: const Text('Workout History'),
-                            value: showWorkoutHistory,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                showWorkoutHistory = value ?? false;
-                              });
-                            },
-                          ),
-                          CheckboxListTile(
-                            title: const Text('Nutrition Intake'),
-                            value: showNutritionIntake,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                showNutritionIntake = value ?? false;
-                              });
-                            },
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              // filters to the page content here
-                            },
-                            child: const Text('Apply Filters'),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-            );
-          },
-          child: const Icon(Icons.filter_list_alt),
+          onPressed: _showActionDialog,
+          child: const Icon(Icons.book_rounded),
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat, // position the button at the end/right-side of the screen
+    );
+  }
+
+  // Show a dialog with the list of pages/functions to navigate to
+  void _showActionDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Choose an Action'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: const Text('Add Workout Log'),
+                onTap: () {
+                  Navigator.pop(context); // Close the dialog
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ActivityPage()), 
+                  ); // Navigate to Add Workout Log page
+                },
+              ),
+              ListTile(
+                title: const Text('Add Nutrition Log'),
+                onTap: () {
+                  Navigator.pop(context); // Close the dialog
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const NutritionScreen()), 
+                  ); // Navigate to Add Nutrition Log page
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
