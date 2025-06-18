@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'ui/dashboard/view_dashboard.dart';
+//import 'ui/dashboard/view_dashboard.dart';
 import 'ui/dashboard/schedule_page.dart';
 import 'ui/profile/profile_page.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -25,7 +25,7 @@ class _MainNavigationViewState extends State<MainNavigationView> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    const DashboardView(),
+    //const DashboardView(),
     const SchedulePage(),
     const ProfilePage(), // Create this file
   ];
