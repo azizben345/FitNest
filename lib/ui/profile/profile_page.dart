@@ -509,7 +509,7 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 20),
 
               // FirebaseUI Sign Out Button (optional, as you have it in MainNavigationView's AppBar too)
-              const SignOutButton(),
+              // const SignOutButton(),
             ],
           ),
         ),
