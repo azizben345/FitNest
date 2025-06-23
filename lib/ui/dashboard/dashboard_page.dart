@@ -243,7 +243,8 @@ class _DashboardViewState extends State<DashboardView> {
                                 leading: const Icon(Icons.run_circle),
                                 title: Text(workout['activityType']),
                                 subtitle: Text(
-                                    'Duration: ${workout['duration']} minutes \nTimestamp: ${workout['timestamp']}\nCalories Burned: ${workout['caloriesBurned']} cal'),
+                                    'Duration: ${workout['duration']} minutes \nTimestamp: ${workout['timestamp']}\nCalories Expended: ${workout['caloriesExpended']} cal'
+                                ),
                               ),
                             );
                           },
