@@ -22,6 +22,7 @@ class DashboardViewModel {
           'id': doc.id,
           'activityType': doc['activityType'],
           'duration': doc['duration'],
+          'caloriesBurned': doc['caloriesBurned'] ?? 0,
           'timestamp': formatTimestamp(doc['timestamp']),
         };
       }).toList();
@@ -47,9 +48,9 @@ class DashboardViewModel {
       return querySnapshot.docs.map((doc) {
         return {
           'id': doc.id,
-          'calories': (doc.data()?['calories'] as num?)?.toDouble() ?? 0.0,
-          'mealTime': doc.data()?['mealTime'] as Timestamp?,
-          'mealType': doc.data()?['mealType'] as String? ?? 'N/A',
+          'calories': (doc.data()['calories'] as num?)?.toDouble() ?? 0.0,
+          'mealTime': doc.data()['mealTime'] as Timestamp?,
+          'mealType': doc.data()['mealType'] as String? ?? 'N/A',
         };
       }).toList();
     } catch (e) {

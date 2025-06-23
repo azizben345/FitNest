@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'firebase_options.dart';
-import 'auth_gate.dart';
+import 'ui/authentication/auth_gate.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

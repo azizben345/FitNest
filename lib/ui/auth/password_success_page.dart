@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class PasswordSuccessPage extends StatelessWidget {
-  const PasswordSuccessPage({Key? key}) : super(key: key);
+  const PasswordSuccessPage({super.key});
 
   @override
   Widget build(BuildContext context) {

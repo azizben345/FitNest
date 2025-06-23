@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'createnewpassword.dart';
 
 class OTPVerificationPage extends StatelessWidget {
-  const OTPVerificationPage({Key? key}) : super(key: key);
+  const OTPVerificationPage({super.key});
 
   @override
   Widget build(BuildContext context) {

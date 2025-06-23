@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
 }
 
 class NutritionScreen extends StatelessWidget {
-  const NutritionScreen({Key? key}) : super(key: key);
+  const NutritionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

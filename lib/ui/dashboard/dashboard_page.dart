@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:fitnest_app/ui/authentication/user_viewmodel.dart';
 import 'view_model/dashboard_viewmodel.dart';
 import 'view_model/schedule_viewmodel.dart';
+import 'package:fitnest_app/ui/activity/activity.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -69,6 +70,11 @@ class _DashboardViewState extends State<DashboardView> {
 
   @override
   Widget build(BuildContext context) {
+
+    // Calculate total calories in and out
+    double totalCaloriesIn = nutritionIntake.fold(0.0, (prev, item) => prev + (item['calories'] as num).toDouble());
+    double totalCaloriesOut = 2900;//workoutHistory.fold(0.0, (prev, item) => prev + (item['caloriesBurned'] as num?)!.toDouble());
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -116,29 +122,21 @@ class _DashboardViewState extends State<DashboardView> {
                   child: PieChart(
                     PieChartData(
                       sections: [
-                        PieChartSectionData(
-                          value: 50,
-                          title: '50%',
-                          color: Colors.blue,
-                          radius: 50,
-                          titleStyle: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        PieChartSectionData(
-                          value: 50,
-                          title: '50%',
-                          color: Colors.orange,
-                          radius: 50,
-                          titleStyle: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
+  PieChartSectionData(
+    value: totalCaloriesIn,
+    title: '${(totalCaloriesIn / (totalCaloriesIn + totalCaloriesOut) * 100).toStringAsFixed(1)}%',
+    color: Colors.blue,
+    radius: 50,
+    //...
+  ),
+  PieChartSectionData(
+    value: totalCaloriesOut,
+    title: '${(totalCaloriesOut / (totalCaloriesIn + totalCaloriesOut) * 100).toStringAsFixed(1)}%',
+    color: Colors.orange,
+    radius: 50,
+    //...
+  )
+],
                       centerSpaceRadius: 40,
                       sectionsSpace: 2,
                     ),
@@ -245,7 +243,7 @@ class _DashboardViewState extends State<DashboardView> {
                                 leading: const Icon(Icons.run_circle),
                                 title: Text(workout['activityType']),
                                 subtitle: Text(
-                                    'Duration: ${workout['duration']} minutes \nTimestamp: ${workout['timestamp']}'),
+                                    'Duration: ${workout['duration']} minutes \nTimestamp: ${workout['timestamp']}\nCalories Burned: ${workout['caloriesBurned']} cal'),
                               ),
                             );
                           },
@@ -286,76 +284,37 @@ class _DashboardViewState extends State<DashboardView> {
         ),
       ),
 
-      // Dashboard filter button
+      // navigate to activity or nutrition page on button press
       floatingActionButton: Builder(
-        builder: (context) => FloatingActionButton(
-          onPressed: () {
-            showModalBottomSheet(
-              context: context,
-              builder: (BuildContext context) {
-                bool showTodaySchedule = true;
-                bool showWorkoutHistory = true;
-                bool showNutritionIntake = true;
-
-                return StatefulBuilder(
-                  builder: (BuildContext context, StateSetter setState) {
-                    return Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Filter Content Display',
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          CheckboxListTile(
-                            title: const Text('Today\'s Schedule'),
-                            value: showTodaySchedule,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                showTodaySchedule = value ?? false;
-                              });
-                            },
-                          ),
-                          CheckboxListTile(
-                            title: const Text('Workout History'),
-                            value: showWorkoutHistory,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                showWorkoutHistory = value ?? false;
-                              });
-                            },
-                          ),
-                          CheckboxListTile(
-                            title: const Text('Nutrition Intake'),
-                            value: showNutritionIntake,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                showNutritionIntake = value ?? false;
-                              });
-                            },
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              // filters to the page content here
-                            },
-                            child: const Text('Apply Filters'),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-            );
+        builder: (context) => PopupMenuButton<String>(
+          icon: const Icon(Icons.add),
+          onSelected: (value) {
+        if (value == 'activity') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ActivityPage()),
+          );
+        } else if (value == 'nutrition') {
+          // replace with your NutritionIntakePage when implemented
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ActivityPage()),
+          );
+        }
           },
-          child: const Icon(Icons.filter_list_alt),
+          itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 'activity',
+          child: Text('Add Activity'),
+        ),
+        const PopupMenuItem(
+          value: 'nutrition',
+          child: Text('Add Nutrition Intake'),
+        ),
+          ],
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
