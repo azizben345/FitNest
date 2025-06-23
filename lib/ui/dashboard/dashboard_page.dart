@@ -4,6 +4,7 @@ import 'package:fitnest_app/ui/authentication/user_viewmodel.dart';
 import 'view_model/dashboard_viewmodel.dart';
 import 'view_model/schedule_viewmodel.dart';
 import 'package:fitnest_app/ui/activity/activity.dart';
+import 'package:fitnest_app/ui/activity/temp_activity_page.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -73,7 +74,7 @@ class _DashboardViewState extends State<DashboardView> {
 
     // Calculate total calories in and out
     double totalCaloriesIn = nutritionIntake.fold(0.0, (prev, item) => prev + (item['calories'] as num).toDouble());
-    double totalCaloriesOut = 2900;//workoutHistory.fold(0.0, (prev, item) => prev + (item['caloriesBurned'] as num?)!.toDouble());
+    double totalCaloriesOut = 2900;//workoutHistory.fold(0.0, (prev, item) => prev + (item['caloriesExpended'] as num?)!.toDouble());
 
     return Scaffold(
       body: SafeArea(
@@ -299,7 +300,7 @@ class _DashboardViewState extends State<DashboardView> {
           // replace with your NutritionIntakePage when implemented
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const ActivityPage()),
+            MaterialPageRoute(builder: (context) => AddWorkoutPage(userId: currentUserIdDisplay)),
           );
         }
           },

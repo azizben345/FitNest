@@ -6,33 +6,41 @@ import 'package:intl/intl.dart';
 class DashboardViewModel {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<List<Map<String, dynamic>>> fetchWorkoutHistory(String userId) async {
-    try {
-      // Filter by current user's ID assuming 'userId' field in workoutHistory
-      QuerySnapshot snapshot = await _firestore
-          .collection('workoutHistory')
-          .where('uid', isEqualTo: userId)
-          .orderBy('timestamp', descending: true)
-          .get();
+Future<List<Map<String, dynamic>>> fetchWorkoutHistory(String userId) async {
+  try {
+    QuerySnapshot snapshot = await _firestore
+        .collection('workoutHistory')
+        .where('uid', isEqualTo: userId)
+        .orderBy('timestamp', descending: true)
+        .get();
 
-      List<Map<String, dynamic>> fetchedWorkoutHistory =
-          snapshot.docs.map((doc) {
-            // print('RAW doc: ${doc.data()}');
-            return {
-              'id': doc.id,
-              'activityType': doc['activityType'],
-              'duration': doc['duration'],
-              'caloriesExpended': (doc['caloriesExpended'] as num?)?.toDouble() ?? 0.0,
-              'timestamp': formatTimestamp(doc['timestamp']),
-            };
-          }).toList();
+    List<Map<String, dynamic>> fetchedWorkoutHistory = snapshot.docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
 
-      return fetchedWorkoutHistory;
-    } catch (e) {
-      print('Error fetching workout history: $e');
-      return [];
-    }
+      // Always set caloriesExpended safely
+      final caloriesExpended = data.containsKey('caloriesExpended') && data['caloriesExpended'] != null
+          ? (data['caloriesExpended'] as num).toDouble()
+          : 0.0;
+
+      final mapped = {
+        'id': doc.id,
+        'activityType': data['activityType'] ?? 'Unknown',
+        'duration': data['duration'] ?? 0,
+        'caloriesExpended': caloriesExpended,
+        'timestamp': formatTimestamp(data['timestamp']),
+      };
+
+      print('MAPPED WORKOUT: $mapped');  // Debug print to confirm what gets mapped
+      return mapped;
+    }).toList();
+
+    return fetchedWorkoutHistory;
+  } catch (e) {
+    print('Error fetching workout history: $e');
+    return [];
   }
+}
+
 
   Future<List<Map<String, dynamic>>> fetchNutritionIntake(String userId) async {
     try {
