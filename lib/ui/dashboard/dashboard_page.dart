@@ -132,6 +132,17 @@ class _DashboardViewState extends State<DashboardView> {
     double totalCaloriesIn = weekNutrition.fold(0.0, (prev, item) => prev + (item['calories'] as num));
     double totalCaloriesOut = weekWorkouts.fold(0.0, (prev, item) => prev + (item['caloriesExpended'] as num? ?? 0));
 
+    // Prepare data for bar chart: caloriesExpended per day (Monday to Sunday)
+    List<double> caloriesPerDay = List.filled(7, 0.0); // index 0 = Monday
+
+    for (var workout in weekWorkouts) {
+      DateTime workoutTime = DateTime.parse(workout['timestamp']);
+      int weekdayIndex = workoutTime.weekday - 1; // Monday = 0
+      if (weekdayIndex >= 0 && weekdayIndex < 7) {
+      caloriesPerDay[weekdayIndex] += (workout['caloriesExpended'] as num? ?? 0).toDouble();
+      }
+    }
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -145,97 +156,145 @@ class _DashboardViewState extends State<DashboardView> {
                   color: Colors.green[50],
                   margin: const EdgeInsets.only(bottom: 16),
                   child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 16, horizontal: 20),
-                    child: Column(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16, horizontal: 20),
+                      child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Workout Streaks',
-                          style: TextStyle(
+                        'Workout Streaks',
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          ),
+                        ),
                         ),
                         const SizedBox(height: 8),
                         Row(
+                        children: [
+                          Icon(Icons.local_fire_department,
+                          color: Colors.orange[700], size: 36),
+                          const SizedBox(width: 16),
+                          Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.local_fire_department,
-                              color: Colors.orange[700], size: 36),
-                            const SizedBox(width: 16),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('🔥 Current streak: $currentStreak days'),
-                                Text('🏅 Longest streak: $longestStreak days'),
-                              ],
-                            ),
+                            Text('🔥 Current streak: $currentStreak days'),
+                            Text('🏅 Longest streak: $longestStreak days'),
                           ],
+                          ),
+                        ],
                         ),
                       ],
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 200,
-                  child: PieChart(
-                    PieChartData(
-                      sections: [
+                      ),
+                      ),
+                      ),
+                      SizedBox(
+                      height: 200,
+                      child: PieChart(
+                        PieChartData(
+                        sections: [
                         PieChartSectionData(
                           value: totalCaloriesIn,
                           title: '${(totalCaloriesIn / (totalCaloriesIn + totalCaloriesOut) * 100).toStringAsFixed(1)}%',
                           color: Colors.blue,
-                          radius: 50,
-                          //...
+                          radius: 40,
                         ),
                         PieChartSectionData(
                           value: totalCaloriesOut,
                           title: '${(totalCaloriesOut / (totalCaloriesIn + totalCaloriesOut) * 100).toStringAsFixed(1)}%',
                           color: Colors.orange,
-                          radius: 50,
-                          //...
+                          radius: 40,
                         )
-                      ],
-                      centerSpaceRadius: 40,
-                      sectionsSpace: 2,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Row(
+                        ],
+                        centerSpaceRadius: 40,
+                        sectionsSpace: 2,
+                        ),
+                      ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
                       children: [
-                        Container(
-                          width: 16,
-                          height: 16,
-                          decoration: const BoxDecoration(
-                            color: Colors.blue,
-                            shape: BoxShape.circle,
+                      Row(
+                        children: [
+                          Container(
+                            width: 16,
+                            height: 16,
+                            decoration: const BoxDecoration(
+                              color: Colors.blue,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Text('Calorie Intake'),
+                        ],
+                      ),
+                      const SizedBox(width: 20),
+                      Row(
+                        children: [
+                          Container(
+                            width: 16,
+                            height: 16,
+                            decoration: const BoxDecoration(
+                              color: Colors.orange,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Text('Calories Burned'),
+                        ],
+                      ),
+                      ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Calorie Expended Line Chart
+                      const Text(
+                      'Calories Expended This Week',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                      height: 250, 
+                      child: LineChart(
+                      LineChartData(
+                        gridData: const FlGridData(show: true),
+                        titlesData: FlTitlesData(
+                        show: true,
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) {
+                              const days = [
+                                'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
+                              ];
+                              if (value >= 0 && value <= 6) {
+                                return Text(days[value.toInt()]);
+                              }
+                              return const SizedBox.shrink();
+                            },
+                            interval: 1,
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        const Text('Calorie Intake'),
-                      ],
-                    ),
-                    const SizedBox(width: 20),
-                    Row(
-                      children: [
-                        Container(
-                          width: 16,
-                          height: 16,
-                          decoration: const BoxDecoration(
-                            color: Colors.orange,
-                            shape: BoxShape.circle,
-                          ),
                         ),
-                        const SizedBox(width: 6),
-                        const Text('Calories Burned'),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
+                        borderData: FlBorderData(show: true),
+                        minX: 0,
+                        maxX: 6, // 7 days in a week
+                        minY: 0,
+                        maxY: caloriesPerDay.isEmpty ? 0 : caloriesPerDay.reduce((a, b) => a > b ? a : b),
+                        lineBarsData: [
+                        LineChartBarData(
+                        spots: List.generate(
+                        7,
+                        (i) => FlSpot(i.toDouble(), caloriesPerDay[i]),
+                        ),
+                        isCurved: true,
+                        color: Colors.orange,
+                        barWidth: 4,
+                        belowBarData: BarAreaData(show: true, color: Colors.orange.withOpacity(0.3)),
+                        ),
+                        ],
+                      ),
+                      ),
+                      ),
                 const Text(
                   'Today\'s Workout Schedule',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
