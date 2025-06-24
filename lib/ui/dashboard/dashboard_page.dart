@@ -72,9 +72,65 @@ class _DashboardViewState extends State<DashboardView> {
   @override
   Widget build(BuildContext context) {
 
-    // Calculate total calories in and out
-    double totalCaloriesIn = nutritionIntake.fold(0.0, (prev, item) => prev + (item['calories'] as num).toDouble());
-    double totalCaloriesOut = workoutHistory.fold(0.0, (prev, item) => prev + (item['caloriesExpended'] as num?)!.toDouble());
+    // calculate workout streaks
+    Map<String, int> calculateStreak(List<Map<String, dynamic>> history) {
+      history.sort((a, b) => DateTime.parse(b['timestamp']).compareTo(DateTime.parse(a['timestamp'])));
+
+      int currentStreak = 0;
+      int longestStreak = 0;
+      int tempStreak = 0; // temporary streak to track streaks throughout history
+      
+      DateTime today = DateTime.now();
+      DateTime expectedDate = DateTime(today.year, today.month, today.day);
+
+      // to track streaks in the past, including longest streak
+      for (var workout in history) {
+        DateTime workoutDate = DateTime.parse(workout['timestamp']);
+        workoutDate = DateTime(workoutDate.year, workoutDate.month, workoutDate.day);
+
+        if (workoutDate == expectedDate) {
+          // workout on expected date, increase streak
+          currentStreak++;
+          tempStreak++;  
+          longestStreak = tempStreak > longestStreak ? tempStreak : longestStreak;  // update longest streak
+          expectedDate = expectedDate.subtract(const Duration(days: 1));
+        } else if (workoutDate.isBefore(expectedDate)) {
+          // break in streak (date mismatch), reset temporary streak
+          tempStreak = 0;
+        }
+      }
+
+      return {
+        'currentStreak': currentStreak,
+        'longestStreak': longestStreak,
+      };
+    }
+
+    final streaks = calculateStreak(workoutHistory);
+    final int currentStreak = streaks['currentStreak'] ?? 0;
+    final int longestStreak = streaks['longestStreak'] ?? 0;
+
+    // filter calorie data from start and end of the current week (Monday to Sunday)
+    DateTime now = DateTime.now();
+    DateTime weekStart = now.subtract(Duration(days: now.weekday - 1));
+    DateTime weekEnd = weekStart.add(const Duration(days: 6));
+
+    // filter nutrition intake for this week
+    List<Map<String, dynamic>> weekNutrition = nutritionIntake.where((meal) {
+      DateTime mealTime = DateTime.parse(meal['mealTime']);
+      return mealTime.isAfter(weekStart.subtract(const Duration(seconds: 1))) &&
+         mealTime.isBefore(weekEnd.add(const Duration(days: 1)));
+    }).toList();
+    // filter workout history for this week
+    List<Map<String, dynamic>> weekWorkouts = workoutHistory.where((workout) {
+      DateTime workoutTime = DateTime.parse(workout['timestamp']);
+      return workoutTime.isAfter(weekStart.subtract(const Duration(seconds: 1))) &&
+         workoutTime.isBefore(weekEnd.add(const Duration(days: 1)));
+    }).toList();
+
+    // calculate total calories consumed and burned for this week
+    double totalCaloriesIn = weekNutrition.fold(0.0, (prev, item) => prev + (item['calories'] as num));
+    double totalCaloriesOut = weekWorkouts.fold(0.0, (prev, item) => prev + (item['caloriesExpended'] as num? ?? 0));
 
     return Scaffold(
       body: SafeArea(
@@ -84,33 +140,35 @@ class _DashboardViewState extends State<DashboardView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Workout Streak Section
+                // workout Streak Section
                 Card(
                   color: Colors.green[50],
                   margin: const EdgeInsets.only(bottom: 16),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 16, horizontal: 20),
-                    child: Row(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16, horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.local_fire_department,
-                            color: Colors.orange[700], size: 36),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        const Text(
+                          'Workout Streaks',
+                          style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
                           children: [
-                            Text(
-                              'Streak of :\n$currentUserIdDisplay',
-                              style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              '🔥 7 days in a row!',
-                              style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.deepOrange,
-                                  fontWeight: FontWeight.w600),
+                            Icon(Icons.local_fire_department,
+                              color: Colors.orange[700], size: 36),
+                            const SizedBox(width: 16),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('🔥 Current streak: $currentStreak days'),
+                                Text('🏅 Longest streak: $longestStreak days'),
+                              ],
                             ),
                           ],
                         ),
@@ -123,21 +181,21 @@ class _DashboardViewState extends State<DashboardView> {
                   child: PieChart(
                     PieChartData(
                       sections: [
-  PieChartSectionData(
-    value: totalCaloriesIn,
-    title: '${(totalCaloriesIn / (totalCaloriesIn + totalCaloriesOut) * 100).toStringAsFixed(1)}%',
-    color: Colors.blue,
-    radius: 50,
-    //...
-  ),
-  PieChartSectionData(
-    value: totalCaloriesOut,
-    title: '${(totalCaloriesOut / (totalCaloriesIn + totalCaloriesOut) * 100).toStringAsFixed(1)}%',
-    color: Colors.orange,
-    radius: 50,
-    //...
-  )
-],
+                        PieChartSectionData(
+                          value: totalCaloriesIn,
+                          title: '${(totalCaloriesIn / (totalCaloriesIn + totalCaloriesOut) * 100).toStringAsFixed(1)}%',
+                          color: Colors.blue,
+                          radius: 50,
+                          //...
+                        ),
+                        PieChartSectionData(
+                          value: totalCaloriesOut,
+                          title: '${(totalCaloriesOut / (totalCaloriesIn + totalCaloriesOut) * 100).toStringAsFixed(1)}%',
+                          color: Colors.orange,
+                          radius: 50,
+                          //...
+                        )
+                      ],
                       centerSpaceRadius: 40,
                       sectionsSpace: 2,
                     ),
@@ -287,36 +345,62 @@ class _DashboardViewState extends State<DashboardView> {
       ),
 
       // navigate to activity or nutrition page on button press
-      floatingActionButton: Builder(
-        builder: (context) => PopupMenuButton<String>(
-          icon: const Icon(Icons.add),
-          onSelected: (value) {
-        if (value == 'activity') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ActivityPage()),
-          );
-        } else if (value == 'nutrition') {
-          // replace with your NutritionIntakePage when implemented
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AddWorkoutPage(userId: currentUserIdDisplay)),
-          );
-        }
+      floatingActionButton: Container(
+        margin: const EdgeInsets.only(bottom: 16, right: 8),
+        child: FloatingActionButton.extended(
+          backgroundColor: Colors.deepOrange,
+          foregroundColor: Colors.white,
+          elevation: 8,
+          icon: const Icon(Icons.add, size: 28),
+          label: const Text(
+            'Add',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              builder: (context) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.directions_run, color: Colors.blue),
+                  title: const Text('Add Activity'),
+                  onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ActivityPage()),
+                );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.restaurant, color: Colors.orange),
+                  title: const Text('Add Nutrition Intake'),
+                  onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AddWorkoutPage(userId: currentUserIdDisplay)),
+                );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
           },
-          itemBuilder: (context) => [
-        const PopupMenuItem(
-          value: 'activity',
-          child: Text('Add Activity'),
-        ),
-        const PopupMenuItem(
-          value: 'nutrition',
-          child: Text('Add Nutrition Intake'),
-        ),
-          ],
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
+
 }
