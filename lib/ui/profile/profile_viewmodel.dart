@@ -3,30 +3,40 @@ import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:intl/intl.dart';
 // import 'dart:math';
 
-class ProfileViewmodel {
-  
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+class ProfileViewModel {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<Map<String, dynamic>?> fetchUserProfile() async {
-    final user = _auth.currentUser;
-    if (user == null) {
-      print("No user logged in to fetch profile.");
-      return null;
-    }
-
+  Future<void> updateUserProfile({
+    required String name,
+    required String email,
+  }) async {
     try {
-      DocumentSnapshot userDoc =
-          await _firestore.collection('userProfiles').doc(user.uid).get();
+      final String uid = _auth.currentUser!.uid;
 
-      if (userDoc.exists) {
-        return userDoc.data() as Map<String, dynamic>;
-      } else {
-        print("User profile not found for UID: ${user.uid}");
-        return null;
-      }
+      await _firestore.collection('users').doc(uid).set({
+        'uid': uid,
+        'name': name,
+        'email': email,
+      }, SetOptions(merge: true));
     } catch (e) {
-      print('Error fetching user profile: $e');
+      print("Error updating profile: $e");
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getUserProfile() async {
+    try {
+      final String uid = _auth.currentUser!.uid;
+      final DocumentSnapshot doc =
+          await _firestore.collection('users').doc(uid).get();
+
+      if (doc.exists) {
+        return doc.data() as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      print("Error fetching profile: $e");
       return null;
     }
   }
