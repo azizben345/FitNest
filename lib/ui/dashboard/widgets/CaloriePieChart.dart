@@ -66,17 +66,7 @@ class _CaloriePieChartState extends State<CaloriePieChart> {
                 PieChartSectionData(
                   value: _consumedCalories,
                   color: Colors.blue,
-                  title:
-                      '${(_consumedCalories / _calorieTarget * 100).toStringAsFixed(1)}%',
-                  radius: 50,
-                  titleStyle: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w600),
-                ),
-                PieChartSectionData(
-                  value: _burnedCalories,
-                  color: Colors.orange,
-                  title:
-                      '${(_burnedCalories / _calorieTarget * 100).toStringAsFixed(1)}%',
+                  title: '${_consumedCalories.round()} kcal',
                   radius: 50,
                   titleStyle: const TextStyle(
                       fontSize: 13, fontWeight: FontWeight.w600),
@@ -84,8 +74,7 @@ class _CaloriePieChartState extends State<CaloriePieChart> {
                 PieChartSectionData(
                   value: remaining.toDouble(),
                   color: Colors.grey[300],
-                  title:
-                      '${(remaining / _calorieTarget * 100).toStringAsFixed(1)}%',
+                  title: '${remaining.round()} kcal',
                   radius: 50,
                   titleStyle: const TextStyle(
                       fontSize: 13, fontWeight: FontWeight.w600),
@@ -105,15 +94,15 @@ class _CaloriePieChartState extends State<CaloriePieChart> {
             ),
             const Text('Daily Target Overview'),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 24,
-              alignment: WrapAlignment.center,
-              children: [
-                _legendDot('Consumed', Colors.blue),
-                _legendDot('Burned', Colors.orange),
-                _legendDot('Remaining', Colors.grey),
-              ],
-            ),
+            // Wrap(
+            //   spacing: 24,
+            //   alignment: WrapAlignment.center,
+            //   children: [
+            //     _legendDot('Consumed', Colors.blue),
+            //     _legendDot('Burned', Colors.orange),
+            //     _legendDot('Remaining', Colors.grey),
+            //   ],
+            // ),
           ],
         ),
       ],
