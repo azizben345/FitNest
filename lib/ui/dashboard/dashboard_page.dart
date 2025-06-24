@@ -74,7 +74,7 @@ class _DashboardViewState extends State<DashboardView> {
 
     // Calculate total calories in and out
     double totalCaloriesIn = nutritionIntake.fold(0.0, (prev, item) => prev + (item['calories'] as num).toDouble());
-    double totalCaloriesOut = 2900;//workoutHistory.fold(0.0, (prev, item) => prev + (item['caloriesExpended'] as num?)!.toDouble());
+    double totalCaloriesOut = workoutHistory.fold(0.0, (prev, item) => prev + (item['caloriesExpended'] as num?)!.toDouble());
 
     return Scaffold(
       body: SafeArea(
