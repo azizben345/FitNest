@@ -1,3 +1,4 @@
+import 'package:fitnest_app/ui/services/CalorieCalculatorService.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:fitnest_app/ui/authentication/user_viewmodel.dart';
@@ -5,6 +6,10 @@ import 'view_model/dashboard_viewmodel.dart';
 import 'view_model/schedule_viewmodel.dart';
 import 'package:fitnest_app/ui/activity/activity.dart';
 import 'package:fitnest_app/ui/activity/temp_activity_page.dart';
+import 'package:fitnest_app/ui/activity/nutritionIntake.dart';
+import 'package:fitnest_app/ui/activity/nutritionIntake_viewmodel.dart';
+import 'package:fitnest_app/ui/services/CalorieCalculatorService.dart';
+import 'package:fitnest_app/ui/dashboard/widgets/CaloriePieChart.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -17,6 +22,7 @@ class _DashboardViewState extends State<DashboardView> {
   final UserViewModel userViewModel = UserViewModel();
   final DashboardViewModel dashboardViewModel = DashboardViewModel();
   final ScheduleViewModel scheduleViewModel = ScheduleViewModel();
+  final CalorieCalculatorService calorieService = CalorieCalculatorService();
 
   String currentUserIdDisplay = ''; // to store the current user ID for display
   List<Map<String, dynamic>> todayWorkoutSchedule = [];
@@ -69,30 +75,42 @@ class _DashboardViewState extends State<DashboardView> {
     }
   }
 
+  void fetchCalorieBreakdown() async {
+    final result = await calorieService.calculateUserCalorieNeeds();
+    if (result != null) {
+      print(
+          "BMR: ${result.bmr}, Activity: ${result.activity}, Goal: ${result.goalAdjustment}");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-
     // calculate workout streaks
     Map<String, int> calculateStreak(List<Map<String, dynamic>> history) {
-      history.sort((a, b) => DateTime.parse(b['timestamp']).compareTo(DateTime.parse(a['timestamp'])));
+      history.sort((a, b) => DateTime.parse(b['timestamp'])
+          .compareTo(DateTime.parse(a['timestamp'])));
 
       int currentStreak = 0;
       int longestStreak = 0;
-      int tempStreak = 0; // temporary streak to track streaks throughout history
-      
+      int tempStreak =
+          0; // temporary streak to track streaks throughout history
+
       DateTime today = DateTime.now();
       DateTime expectedDate = DateTime(today.year, today.month, today.day);
 
       // to track streaks in the past, including longest streak
       for (var workout in history) {
         DateTime workoutDate = DateTime.parse(workout['timestamp']);
-        workoutDate = DateTime(workoutDate.year, workoutDate.month, workoutDate.day);
+        workoutDate =
+            DateTime(workoutDate.year, workoutDate.month, workoutDate.day);
 
         if (workoutDate == expectedDate) {
           // workout on expected date, increase streak
           currentStreak++;
-          tempStreak++;  
-          longestStreak = tempStreak > longestStreak ? tempStreak : longestStreak;  // update longest streak
+          tempStreak++;
+          longestStreak = tempStreak > longestStreak
+              ? tempStreak
+              : longestStreak; // update longest streak
           expectedDate = expectedDate.subtract(const Duration(days: 1));
         } else if (workoutDate.isBefore(expectedDate)) {
           // break in streak (date mismatch), reset temporary streak
@@ -119,18 +137,21 @@ class _DashboardViewState extends State<DashboardView> {
     List<Map<String, dynamic>> weekNutrition = nutritionIntake.where((meal) {
       DateTime mealTime = DateTime.parse(meal['mealTime']);
       return mealTime.isAfter(weekStart.subtract(const Duration(seconds: 1))) &&
-         mealTime.isBefore(weekEnd.add(const Duration(days: 1)));
+          mealTime.isBefore(weekEnd.add(const Duration(days: 1)));
     }).toList();
     // filter workout history for this week
     List<Map<String, dynamic>> weekWorkouts = workoutHistory.where((workout) {
       DateTime workoutTime = DateTime.parse(workout['timestamp']);
-      return workoutTime.isAfter(weekStart.subtract(const Duration(seconds: 1))) &&
-         workoutTime.isBefore(weekEnd.add(const Duration(days: 1)));
+      return workoutTime
+              .isAfter(weekStart.subtract(const Duration(seconds: 1))) &&
+          workoutTime.isBefore(weekEnd.add(const Duration(days: 1)));
     }).toList();
 
     // calculate total calories consumed and burned for this week
-    double totalCaloriesIn = weekNutrition.fold(0.0, (prev, item) => prev + (item['calories'] as num));
-    double totalCaloriesOut = weekWorkouts.fold(0.0, (prev, item) => prev + (item['caloriesExpended'] as num? ?? 0));
+    double totalCaloriesIn = weekNutrition.fold(
+        0.0, (prev, item) => prev + (item['calories'] as num));
+    double totalCaloriesOut = weekWorkouts.fold(
+        0.0, (prev, item) => prev + (item['caloriesExpended'] as num? ?? 0));
 
     // Prepare data for bar chart: caloriesExpended per day (Monday to Sunday)
     List<double> caloriesPerDay = List.filled(7, 0.0); // index 0 = Monday
@@ -139,7 +160,8 @@ class _DashboardViewState extends State<DashboardView> {
       DateTime workoutTime = DateTime.parse(workout['timestamp']);
       int weekdayIndex = workoutTime.weekday - 1; // Monday = 0
       if (weekdayIndex >= 0 && weekdayIndex < 7) {
-      caloriesPerDay[weekdayIndex] += (workout['caloriesExpended'] as num? ?? 0).toDouble();
+        caloriesPerDay[weekdayIndex] +=
+            (workout['caloriesExpended'] as num? ?? 0).toDouble();
       }
     }
 
@@ -157,114 +179,124 @@ class _DashboardViewState extends State<DashboardView> {
                   margin: const EdgeInsets.only(bottom: 16),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      vertical: 16, horizontal: 20),
-                      child: Column(
+                        vertical: 16, horizontal: 20),
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                        'Workout Streaks',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                          'Workout Streaks',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Row(
-                        children: [
-                          Icon(Icons.local_fire_department,
-                          color: Colors.orange[700], size: 36),
-                          const SizedBox(width: 16),
-                          Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('🔥 Current streak: $currentStreak days'),
-                            Text('🏅 Longest streak: $longestStreak days'),
+                            Icon(Icons.local_fire_department,
+                                color: Colors.orange[700], size: 36),
+                            const SizedBox(width: 16),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('🔥 Current streak: $currentStreak days'),
+                                Text('🏅 Longest streak: $longestStreak days'),
+                              ],
+                            ),
                           ],
-                          ),
-                        ],
                         ),
                       ],
-                      ),
-                      ),
-                      ),
-                      SizedBox(
-                      height: 200,
-                      child: PieChart(
-                        PieChartData(
-                        sections: [
+                    ),
+                  ),
+                ),
+                CaloriePieChart(),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 200,
+                  child: PieChart(
+                    PieChartData(
+                      sections: [
                         PieChartSectionData(
                           value: totalCaloriesIn,
-                          title: '${(totalCaloriesIn / (totalCaloriesIn + totalCaloriesOut) * 100).toStringAsFixed(1)}%',
+                          title:
+                              '${(totalCaloriesIn / (totalCaloriesIn + totalCaloriesOut) * 100).toStringAsFixed(1)}%',
                           color: Colors.blue,
                           radius: 40,
                         ),
                         PieChartSectionData(
                           value: totalCaloriesOut,
-                          title: '${(totalCaloriesOut / (totalCaloriesIn + totalCaloriesOut) * 100).toStringAsFixed(1)}%',
+                          title:
+                              '${(totalCaloriesOut / (totalCaloriesIn + totalCaloriesOut) * 100).toStringAsFixed(1)}%',
                           color: Colors.orange,
                           radius: 40,
                         )
-                        ],
-                        centerSpaceRadius: 40,
-                        sectionsSpace: 2,
-                        ),
-                      ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                      children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 16,
-                            height: 16,
-                            decoration: const BoxDecoration(
-                              color: Colors.blue,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          const Text('Calorie Intake'),
-                        ],
-                      ),
-                      const SizedBox(width: 20),
-                      Row(
-                        children: [
-                          Container(
-                            width: 16,
-                            height: 16,
-                            decoration: const BoxDecoration(
-                              color: Colors.orange,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          const Text('Calories Burned'),
-                        ],
-                      ),
                       ],
-                      ),
-                      const SizedBox(height: 16),
+                      centerSpaceRadius: 40,
+                      sectionsSpace: 2,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 16,
+                          height: 16,
+                          decoration: const BoxDecoration(
+                            color: Colors.blue,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Text('Calorie Intake'),
+                      ],
+                    ),
+                    const SizedBox(width: 20),
+                    Row(
+                      children: [
+                        Container(
+                          width: 16,
+                          height: 16,
+                          decoration: const BoxDecoration(
+                            color: Colors.orange,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Text('Calories Burned'),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
 
-                      // Calorie Expended Line Chart
-                      const Text(
-                      'Calories Expended This Week',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                      height: 250, 
-                      child: LineChart(
-                      LineChartData(
-                        gridData: const FlGridData(show: true),
-                        titlesData: FlTitlesData(
+                // Calorie Expended Line Chart
+                const Text(
+                  'Calories Expended This Week',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 250,
+                  child: LineChart(
+                    LineChartData(
+                      gridData: const FlGridData(show: true),
+                      titlesData: FlTitlesData(
                         show: true,
                         bottomTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
                             getTitlesWidget: (value, meta) {
                               const days = [
-                                'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
+                                'Mon',
+                                'Tue',
+                                'Wed',
+                                'Thu',
+                                'Fri',
+                                'Sat',
+                                'Sun'
                               ];
                               if (value >= 0 && value <= 6) {
                                 return Text(days[value.toInt()]);
@@ -274,27 +306,31 @@ class _DashboardViewState extends State<DashboardView> {
                             interval: 1,
                           ),
                         ),
-                        ),
-                        borderData: FlBorderData(show: true),
-                        minX: 0,
-                        maxX: 6, // 7 days in a week
-                        minY: 0,
-                        maxY: caloriesPerDay.isEmpty ? 0 : caloriesPerDay.reduce((a, b) => a > b ? a : b),
-                        lineBarsData: [
+                      ),
+                      borderData: FlBorderData(show: true),
+                      minX: 0,
+                      maxX: 6, // 7 days in a week
+                      minY: 0,
+                      maxY: caloriesPerDay.isEmpty
+                          ? 0
+                          : caloriesPerDay.reduce((a, b) => a > b ? a : b),
+                      lineBarsData: [
                         LineChartBarData(
-                        spots: List.generate(
-                        7,
-                        (i) => FlSpot(i.toDouble(), caloriesPerDay[i]),
+                          spots: List.generate(
+                            7,
+                            (i) => FlSpot(i.toDouble(), caloriesPerDay[i]),
+                          ),
+                          isCurved: true,
+                          color: Colors.orange,
+                          barWidth: 4,
+                          belowBarData: BarAreaData(
+                              show: true,
+                              color: Colors.orange.withOpacity(0.3)),
                         ),
-                        isCurved: true,
-                        color: Colors.orange,
-                        barWidth: 4,
-                        belowBarData: BarAreaData(show: true, color: Colors.orange.withOpacity(0.3)),
-                        ),
-                        ],
-                      ),
-                      ),
-                      ),
+                      ],
+                    ),
+                  ),
+                ),
                 const Text(
                   'Today\'s Workout Schedule',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -361,8 +397,7 @@ class _DashboardViewState extends State<DashboardView> {
                                 leading: const Icon(Icons.run_circle),
                                 title: Text(workout['activityType']),
                                 subtitle: Text(
-                                    'Duration: ${workout['duration']} minutes \nTimestamp: ${workout['timestamp']}\nCalories Expended: ${workout['caloriesExpended']} cal'
-                                ),
+                                    'Duration: ${workout['duration']} minutes \nTimestamp: ${workout['timestamp']}\nCalories Expended: ${workout['caloriesExpended']} cal'),
                               ),
                             );
                           },
@@ -425,41 +460,47 @@ class _DashboardViewState extends State<DashboardView> {
                 borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
               builder: (context) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                 child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.directions_run, color: Colors.blue),
-                  title: const Text('Add Activity'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => AddWorkoutPage(userId: currentUserIdDisplay)),
-                    );
-                  },
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListTile(
+                      leading:
+                          const Icon(Icons.directions_run, color: Colors.blue),
+                      title: const Text('Add Activity'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  AddWorkoutPage(userId: currentUserIdDisplay)),
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading:
+                          const Icon(Icons.restaurant, color: Colors.orange),
+                      title: const Text('Add Nutrition Intake'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const NutritionIntakePage()),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-                ListTile(
-                  leading: const Icon(Icons.restaurant, color: Colors.orange),
-                  title: const Text('Add Nutrition Intake'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const ActivityPage()),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
+              ),
+            );
           },
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
-
 }
