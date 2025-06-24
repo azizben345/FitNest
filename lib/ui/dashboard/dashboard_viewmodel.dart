@@ -47,9 +47,9 @@ class DashboardViewModel {
       return querySnapshot.docs.map((doc) {
         return {
           'id': doc.id,
-          'calories': (doc.data()?['calories'] as num?)?.toDouble() ?? 0.0,
-          'mealTime': doc.data()?['mealTime'] as Timestamp?,
-          'mealType': doc.data()?['mealType'] as String? ?? 'N/A',
+          'calories': (doc.data()['calories'] as num?)?.toDouble() ?? 0.0,
+          'mealTime': doc.data()['mealTime'] as Timestamp?,
+          'mealType': doc.data()['mealType'] as String? ?? 'N/A',
         };
       }).toList();
     } catch (e) {
