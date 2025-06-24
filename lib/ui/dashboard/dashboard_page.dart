@@ -433,22 +433,22 @@ class _DashboardViewState extends State<DashboardView> {
                   leading: const Icon(Icons.directions_run, color: Colors.blue),
                   title: const Text('Add Activity'),
                   onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ActivityPage()),
-                );
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => AddWorkoutPage(userId: currentUserIdDisplay)),
+                    );
                   },
                 ),
                 ListTile(
                   leading: const Icon(Icons.restaurant, color: Colors.orange),
                   title: const Text('Add Nutrition Intake'),
                   onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AddWorkoutPage(userId: currentUserIdDisplay)),
-                );
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ActivityPage()),
+                    );
                   },
                 ),
               ],
