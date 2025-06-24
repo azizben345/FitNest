@@ -2,6 +2,7 @@ import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'settings_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -15,7 +16,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final _heightController = TextEditingController();
   final _weightController = TextEditingController();
   final _targetWeightController = TextEditingController();
-
+  //======================================================
   String? _selectedPhysiqueGoal;
   String? _selectedGender; // New field for Gender
   DateTime? _selectedBirthday;
@@ -93,10 +94,6 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _saveProfile() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
     final User? currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -128,12 +125,6 @@ class _ProfilePageState extends State<ProfilePage> {
         }
       } else if (_selectedPhysiqueGoal == 'Build Muscle' ||
           _selectedPhysiqueGoal == 'Maintain Weight') {
-        // For building muscle or maintaining, we aim for maintenance or slight surplus.
-        // We can set weightLossTargetKgPerWeek to a small negative value for gain, or 0 for maintenance
-        // For calorie calculation, a positive deficit value means weight loss,
-        // so for gain, we need a "negative deficit" (surplus).
-        // Let's store a positive value for "target change".
-        // The dashboard viewmodel's calorie calculation will interpret this.
         if (_selectedPhysiqueGoal == 'Build Muscle') {
           // Example: Aim for 0.25 kg gain per week (represented as -0.25 for a "negative loss target")
           weightLossTargetKgPerWeek = -0.25; // Indicates a calorie surplus goal
@@ -149,21 +140,19 @@ class _ProfilePageState extends State<ProfilePage> {
         'weight': double.tryParse(_weightController.text),
         'targetWeight': double.tryParse(_targetWeightController.text),
         'physiqueGoal': _selectedPhysiqueGoal,
+        'activityLevel': _selectedActivityLevel,
         'gender': _selectedGender, // Save gender
         'birthday': _selectedBirthday != null
             ? Timestamp.fromDate(_selectedBirthday!)
             : null, // Save birthday as Timestamp
         'lastUpdated': FieldValue.serverTimestamp(),
+        'uid': currentUser.uid,
       };
 
       await FirebaseFirestore.instance
           .collection('userProfiles')
           .doc(currentUser.uid)
-          .set(
-              fitnessProfileData,
-              SetOptions(
-                  merge:
-                      true)); // Use merge: true to update existing fields without overwriting the whole document
+          .set(fitnessProfileData, SetOptions(merge: true));
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -210,22 +199,13 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         title: const Text('My Profile'), // Title for the profile page
         actions: [
-          //Settings
-          //======================================================Setting
           IconButton(
             icon: const Icon(Icons.settings),
-            tooltip: 'Settings',
             onPressed: () {
               Navigator.push(
-                context,
-                MaterialPageRoute<ProfileScreen>(
-                  builder: (context) => ProfileScreen(
-                    appBar: AppBar(
-                      title: const Text('Setting'),
-                    ),
-                  ),
-                ),
-              );
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const SettingsPage()));
             },
           ),
         ],
@@ -238,50 +218,6 @@ class _ProfilePageState extends State<ProfilePage> {
             crossAxisAlignment:
                 CrossAxisAlignment.stretch, // Stretch fields across width
             children: [
-              // Email Field
-              // TextFormField(
-              //   controller: _emailController,
-              //   decoration: const InputDecoration(
-              //     labelText: 'Email',
-              //     prefixIcon: Icon(Icons.email),
-              //     border: OutlineInputBorder(),
-              //   ),
-              //   keyboardType: TextInputType.emailAddress,
-              //   validator: (value) {
-              //     if (value == null || value.isEmpty) {
-              //       return 'Please enter your email';
-              //     }
-              //     if (!value.contains('@')) {
-              //       return 'Please enter a valid email';
-              //     }
-              //     return null;
-              //   },
-              // ),
-
-              // const SizedBox(height: 16),
-
-              // // Password Field (Again, be cautious with this in a real app)
-              // TextFormField(
-              //   controller: _passwordController,
-              //   decoration: const InputDecoration(
-              //     labelText: 'Password',
-              //     prefixIcon: Icon(Icons.lock),
-              //     border: OutlineInputBorder(),
-              //   ),
-              //   obscureText: true,
-              //   validator: (value) {
-              //     if (value == null || value.isEmpty) {
-              //       return 'Please enter your password';
-              //     }
-              //     if (value.length < 6) {
-              //       return 'Password must be at least 6 characters';
-              //     }
-              //     return null;
-              //   },
-              // ),
-
-              // const SizedBox(height: 16),
-
               // Gender Dropdown
               DropdownButtonFormField<String>(
                 value: _selectedGender,
@@ -437,7 +373,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
               const SizedBox(height: 30),
 
-              // NEW: Activity Level Dropdown
               DropdownButtonFormField<String>(
                 value: _selectedActivityLevel,
                 decoration: const InputDecoration(
@@ -484,7 +419,6 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 20),
 
-              // // FirebaseUI Sign Out Button (optional, as you have it in MainNavigationView's AppBar too)
               // const SignOutButton(),
             ],
           ),
