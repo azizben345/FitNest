@@ -6,8 +6,8 @@ import 'view_model/dashboard_viewmodel.dart';
 import 'view_model/schedule_viewmodel.dart';
 import 'package:fitnest_app/ui/activity/activity.dart';
 import 'package:fitnest_app/ui/activity/temp_activity_page.dart';
-import 'package:fitnest_app/ui/activity/nutritionIntake.dart';
-import 'package:fitnest_app/ui/activity/nutritionIntake_viewmodel.dart';
+import 'package:fitnest_app/ui/log/nutritionIntake.dart';
+import 'package:fitnest_app/ui/log/nutritionIntake_viewmodel.dart';
 import 'package:fitnest_app/ui/services/CalorieCalculatorService.dart';
 import 'package:fitnest_app/ui/dashboard/widgets/CaloriePieChart.dart';
 
