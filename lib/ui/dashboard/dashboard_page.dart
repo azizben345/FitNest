@@ -10,6 +10,7 @@ import 'package:fitnest_app/ui/log/nutritionIntake.dart';
 import 'package:fitnest_app/ui/log/nutritionIntake_viewmodel.dart';
 import 'package:fitnest_app/ui/services/CalorieCalculatorService.dart';
 import 'package:fitnest_app/ui/dashboard/widgets/CaloriePieChart.dart';
+import 'package:share_plus/share_plus.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -23,6 +24,10 @@ class _DashboardViewState extends State<DashboardView> {
   final DashboardViewModel dashboardViewModel = DashboardViewModel();
   final ScheduleViewModel scheduleViewModel = ScheduleViewModel();
   final CalorieCalculatorService calorieService = CalorieCalculatorService();
+  int currentStreak = 0;
+  int longestStreak = 0;
+  double totalCaloriesIn = 0.0;
+  double totalCaloriesOut = 0.0;
 
   String currentUserIdDisplay = ''; // to store the current user ID for display
   List<Map<String, dynamic>> todayWorkoutSchedule = [];
@@ -37,9 +42,11 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> fetchData() async {
+    DateTime today = DateTime.now();
     String? currentUserId = await userViewModel.getUserUid();
 
     if (currentUserId != null) {
+      // Await all data before calling setState
       List<Map<String, dynamic>> fetchedTodayWorkoutSchedule =
           await scheduleViewModel.fetchWorkoutSchedule(currentUserId);
       List<Map<String, dynamic>> fetchedWorkoutHistory =
@@ -47,31 +54,25 @@ class _DashboardViewState extends State<DashboardView> {
       List<Map<String, dynamic>> fetchedNutritionIntake =
           await dashboardViewModel.fetchNutritionIntake(currentUserId);
 
-      // filter for only today's workout schedule
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-
+      // Filter today’s workouts
       List<Map<String, dynamic>> filteredToday =
           fetchedTodayWorkoutSchedule.where((workout) {
         final scheduledDateTime = DateTime.parse(workout['scheduledTime']);
         final workoutDate = DateTime(scheduledDateTime.year,
             scheduledDateTime.month, scheduledDateTime.day);
-        return workoutDate == today;
+        return workoutDate ==
+            DateTime.now().copyWith(
+                hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
       }).toList();
 
+      // Call setState to update the UI
       setState(() {
-        currentUserIdDisplay = currentUserId; // store the current user ID
+        currentUserIdDisplay = currentUserId; // ✅ Store for later use
         todayWorkoutSchedule = filteredToday;
         workoutHistory = fetchedWorkoutHistory;
         nutritionIntake = fetchedNutritionIntake;
-        isLoading = false; // data fetching complete
-      });
-    } else {
-      // handle the case where the user is not logged in
-      setState(() {
         isLoading = false;
       });
-      print('User not logged in.');
     }
   }
 
@@ -85,6 +86,22 @@ class _DashboardViewState extends State<DashboardView> {
 
   @override
   Widget build(BuildContext context) {
+    void shareProgress() {
+      String message = '''
+      🏋️ My FitNest Weekly Progress 💪
+
+      🔥 Current Workout Streak: $currentStreak days
+      🏅 Longest Streak: $longestStreak days
+
+      🥗 Calories In: ${totalCaloriesIn.toStringAsFixed(0)} cal
+      🔥 Calories Burned: ${totalCaloriesOut.toStringAsFixed(0)} cal
+
+      Track your fitness too with FitNest!
+      ''';
+
+      Share.share(message);
+    }
+
     // calculate workout streaks
     Map<String, int> calculateStreak(List<Map<String, dynamic>> history) {
       history.sort((a, b) => DateTime.parse(b['timestamp'])
@@ -125,8 +142,8 @@ class _DashboardViewState extends State<DashboardView> {
     }
 
     final streaks = calculateStreak(workoutHistory);
-    final int currentStreak = streaks['currentStreak'] ?? 0;
-    final int longestStreak = streaks['longestStreak'] ?? 0;
+    currentStreak = streaks['currentStreak'] ?? 0;
+    longestStreak = streaks['longestStreak'] ?? 0;
 
     // filter calorie data from start and end of the current week (Monday to Sunday)
     DateTime now = DateTime.now();
@@ -148,9 +165,9 @@ class _DashboardViewState extends State<DashboardView> {
     }).toList();
 
     // calculate total calories consumed and burned for this week
-    double totalCaloriesIn = weekNutrition.fold(
+    totalCaloriesIn = weekNutrition.fold(
         0.0, (prev, item) => prev + (item['calories'] as num));
-    double totalCaloriesOut = weekWorkouts.fold(
+    totalCaloriesOut = weekWorkouts.fold(
         0.0, (prev, item) => prev + (item['caloriesExpended'] as num? ?? 0));
 
     // Prepare data for bar chart: caloriesExpended per day (Monday to Sunday)
@@ -209,7 +226,7 @@ class _DashboardViewState extends State<DashboardView> {
                     ),
                   ),
                 ),
-                CaloriePieChart(),
+                //CaloriePieChart(),
                 const SizedBox(height: 16),
                 SizedBox(
                   height: 200,
@@ -331,6 +348,32 @@ class _DashboardViewState extends State<DashboardView> {
                     ),
                   ),
                 ),
+
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: ElevatedButton.icon(
+                    onPressed: shareProgress,
+                    icon: const Icon(Icons.share, size: 18), // smaller icon
+                    label: const Text(
+                      "Share Progress",
+                      style: TextStyle(fontSize: 14), // smaller text
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      minimumSize: const Size(0, 36), // minimum height
+                      tapTargetSize:
+                          MaterialTapTargetSize.shrinkWrap, // tighter hit box
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
                 const Text(
                   'Today\'s Workout Schedule',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
