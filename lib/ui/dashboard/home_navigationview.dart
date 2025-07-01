@@ -3,6 +3,9 @@ import 'dashboard_page.dart';
 import 'schedule_page.dart';
 import '../profile/profile_page.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:fitnest_app/ui/services/notification_service.dart';
+import 'package:fitnest_app/ui/authentication/user_viewmodel.dart';
+import 'package:fitnest_app/ui/dashboard/view_model/schedule_viewmodel.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +38,48 @@ class _HomeNavigationViewState extends State<HomeNavigationView> {
       appBar: AppBar(
         title: Text(_getTitle()),
         actions: [
-          
+          IconButton(
+            icon: const Icon(Icons.notifications_none),
+            onPressed: () async {
+              final userViewModel = UserViewModel();
+              String? userId = await userViewModel.getUserUid();
+
+              if (userId == null) return;
+
+              final scheduleViewModel = ScheduleViewModel();
+              final missed = await scheduleViewModel.getMissedWorkouts(userId);
+
+              if (missed.isNotEmpty) {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Missed Workouts'),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: missed.map((workout) {
+                        return ListTile(
+                          leading: const Icon(Icons.warning, color: Colors.red),
+                          title: Text(workout['activityType']),
+                          subtitle:
+                              Text('Missed at: ${workout['scheduledTime']}'),
+                        );
+                      }).toList(),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('No missed workouts! 🎉')),
+                );
+              }
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
@@ -56,12 +100,10 @@ class _HomeNavigationViewState extends State<HomeNavigationView> {
           ),
         ],
       ),
-
       body: IndexedStack(
         index: _selectedIndex,
         children: _pages,
       ),
-      
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (int index) {
