@@ -81,7 +81,6 @@ class _CaloriePieChartState extends State<CaloriePieChart> {
                 ),
               ],
               centerSpaceRadius: 40,
-              sectionsSpace: 2,
             ),
           ),
         ),

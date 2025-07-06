@@ -1,15 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
-class ScheduleViewModel {
+class SafeScheduleViewModel {
   CollectionReference scheduleCollection =
       FirebaseFirestore.instance.collection('workoutSchedule');
 
-  /// fetch workout schedule
   Future<List<Map<String, dynamic>>> fetchWorkoutSchedule(
       String currentUserId) async {
     try {
-      // Filter documents where 'uid' equals currentUserId
       QuerySnapshot snapshot =
           await scheduleCollection.where('uid', isEqualTo: currentUserId).get();
 
@@ -32,18 +30,6 @@ class ScheduleViewModel {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getMissedWorkouts(String userId) async {
-    final allWorkouts = await fetchWorkoutSchedule(userId);
-    final now = DateTime.now();
-
-    return allWorkouts.where((workout) {
-      final scheduledTime = DateTime.parse(workout['scheduledTime']);
-      final status = workout['status'];
-      return scheduledTime.isBefore(now) && status != 'Completed';
-    }).toList();
-  }
-
-  /// add/create new workout schedule
   Future<void> addSchedule(String uid, String activity, String description,
       String scheduledTime) async {
     try {
@@ -51,7 +37,7 @@ class ScheduleViewModel {
         'uid': uid,
         'activityType': activity,
         'description': description,
-        'status': 'To-do', // default status during creation
+        'status': 'To-do',
         'scheduledTime': Timestamp.fromDate(DateTime.parse(scheduledTime)),
       });
     } catch (e) {
@@ -59,7 +45,6 @@ class ScheduleViewModel {
     }
   }
 
-  /// update existing workout schedule
   Future<void> updateSchedule(String id, String activity, String description,
       String status, String scheduledTime) async {
     try {
@@ -74,19 +59,6 @@ class ScheduleViewModel {
     }
   }
 
-  /// only update status of a workout schedule
-  Future<void> updateWorkoutStatus(String id, String status) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('workoutSchedule')
-          .doc(id)
-          .update({'status': status});
-    } catch (e) {
-      print('Error updating status: $e');
-    }
-  }
-
-  /// delete a workout schedule
   Future<void> deleteSchedule(String id) async {
     try {
       await scheduleCollection.doc(id).delete();
@@ -95,11 +67,16 @@ class ScheduleViewModel {
     }
   }
 
-  // format timestamp
+  Future<void> updateWorkoutStatus(String id, String status) async {
+    try {
+      await scheduleCollection.doc(id).update({'status': status});
+    } catch (e) {
+      print('Error updating status: $e');
+    }
+  }
+
   String formatTimestamp(Timestamp timestamp) {
-    DateTime dateTime =
-        timestamp.toDate(); // Convert Firestore Timestamp to DateTime
-    return DateFormat('yyyy-MM-dd HH:mm:ss')
-        .format(dateTime); // Format as 'yyyy-MM-dd HH:mm:ss'
+    DateTime dateTime = timestamp.toDate();
+    return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
   }
 }

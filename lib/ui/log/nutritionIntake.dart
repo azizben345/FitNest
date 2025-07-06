@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:fitnest_app/ui/activity/nutritionIntake_viewmodel.dart';
+import 'package:fitnest_app/ui/log/nutritionIntake_viewmodel.dart';
 
 class NutritionIntakePage extends StatefulWidget {
   const NutritionIntakePage({super.key});
